@@ -1,0 +1,302 @@
+                                                                                                        Fevereiro/2010
+
+
+
+..:: MANUAL DO POKER
+
+O grande jogo de pôquer
+
+O BARALHO
+
+O baralho tem 52 cartas, divididas em quatro naipes, cada um deles com cartas de 13 valores.
+
+Os quatro naipes
+
+Os naipes têm valor igual, ou seja, nenhum naipe é superior aos outros.
+
+O valor das cartas
+
+No pôquer, os As é a carta de maior valo e o 2 (Duque) a de menor valor.
+No entanto, o ás é a carta de menor valor na sequência 5, 4, 3, 2, ª
+
+AS MÃOS DO PÔQUER
+
+A mão do pôquer consiste de uma combinação de cinco cartas de acordo com certos critérios, como sequência, naipe ou
+par. Vence o jogador que tiver a combinação de cartas mais alta. Em caso e empate, ganha quem tiver a(s) carta(s) de
+maior valor.
+As mãos do pôquer são as seguintes, em ordem decrescente:
+
+Straigth Flush
+Cinco cartas do mesmo naipe em sequência. Entre dois straights flushes, ganha o que for encabeçado pela carta de maior
+valor. O straight flush de maior é A, K, Q, J, 10, também chamado de royal flush (sequência real). O de menor valor é 5, 4,
+3, 2, A.
+
+Four ou Quadra
+Quatro cartas do mesmo valor. Entre duas quadras, vence a que for formada pelas cartas de maior valor.
+
+Full House ou Full Hand
+Três cartas do mesmo valor (combinação chamada trinca, trio ou terno) e um par do mesmo valor. Entre dois fulls
+houses, ganha o que for formado pela trinca de cartas de maior valor.
+
+Flush
+Cinco cartas do mesmo naipe sem formar sequência. Entre dois flushes, ganha o que tiver a carta de maior valor. Se as
+cartas tiverem valor igual, vão se comparando as cartas em ordem decrescente de valor até que uma delas seja maior do
+que a outra.
+
+Straight ou Sequência
+Cinco cartas em sequência, quaisquer que seja os naipes. Entre duas sequências, ganha a que for encabeçada pela carta
+de maior valor. A sequência de maior valor é A-K-Q-J-10. A de menor valor é 5-4-3-2-A.
+
+Trinca
+Três cartas do mesmo valor e duas cartas que não formam par (ver full house) Entre duas trincas, vence a que for
+formada pelas cartas de maior valor.
+
+Dois Pares
+Duas combinações de duas cartas do mesmo valor. Entre duas mãos com dois pares, ganha a que tiver o par de maior
+valor. Se os pares tiverem valor igual, considera-se o outro par. Se as duas mãos tiverem dois pares exatamente iguais,
+vence a que tiver a quinta carta de maior valor.
+
+Um Par
+Duas cartas do mesmo valor. Entre duas mãos com um par, vence a que tiver o par de maior valor. Se os pares tiverem
+valor igual, vão se comparando as outras cartas até que uma delas seja de maior valor do que a outra.
+
+Carta de Maior Valor
+As cartas não formam nenhuma combinação. Entre duas mãos como essa, vence a que tiver a carta de maior valor. Se as
+cartas forem iguais, vão se comparando as outras cartas até que uma seja de maior valor do que a outra.
+
+
+
+                                                                                                                      1/5
+                                                                                                        Fevereiro/2010
+
+VARIAÇÕES DE PÔQUER
+
+TEXAS HOLD'EM
+É a mais popular das variações de pôquer. O objetivo é terminar com a melhor mão e, consequentemente, ganha a mesa
+(em inglês, pot, que é quantidade de fichas apostadas). Consiste de quatro rodadas de aposta e dele podem participar de
+dois a dez jogadores.
+
+Como jogar
+Antes da distribuição das cartas, os dois jogadores à esquerda carteador fazem suas apostas forçadas (blinds). O jogador à
+esquerda do carteador faz uma small blind, e o jogador à esquerda deste, uma big blind, que é duas vezes maior que a
+small.
+
+Nota: carteador é identificado pelo botão D. Sua posição na mesa muda depois de cada jogo, no
+sentido horário.
+
+São distribuídas duas cartas fechadas para cada jogador.
+Na primeira rodada (Pré-Flop), o jogador à esquerda daquele que fez a big blind joga primeiro e pode:
+    − Desistir
+    − Pagar
+    − Aumentar a aposta
+
+A rodada continua com os outros jogadores, cada um deles tomando uma dessas decisões.
+
+Nota: na primeira rodada, não se pode passar a vez.
+
+O carteador coloca três cartas abertas na mesa (Flop). Começa, então, a segunda rodada de apostas, e os jogadores
+podem:
+    − Passar a vez
+    − Desistir
+    − Pagar
+    − Aumentar a aposta
+Na terceira rodada, o carteador coloca na mesa a quarta carta aberta (Turn). Os jogadores fazem novas apostas.
+Na quarta rodada, a quinta e última carta aberta (River) é colocada na mesa. São feitas as últimas apostas. Os jogadores
+usam suas duas cartas fechadas e três das cartas abertas para criar a melhor mão possível. Quem tiver mão ganha a mesa.
+
+Nota: se dois ou mais jogadores tiverem a mesma mão, o montante da mesa é dividido igualmente
+entre eles.
+
+Dicas
+Para aumentar suas chances de ganhar, siga estas estratégias:
+    − Cinco das sete cartas são conhecidas na segunda rodada de apostas. Isso lhe dá uma boa idéia de quão boa
+        poderá ser sua mão.
+    − Para formar a melhor mão possível, é importante considerar como as cinco cartas abertas combinam com suas
+        duas cartas cartas.
+    − Desista quando necessário. Você não perderá muito se tiver uma mão ruim e decidir sair logo do jogo.
+
+REGRAS BÁSICAS
+
+Se não houver aposta na mesa, você pode:
+Apostar (bet): Colocar um pingo (quantidade de fichas predeterminada) na mesa. Agora, os outros jogadores devem
+pagar ou aumentar essa aposta ou desistir.
+Passar a vez (check): Não apostar nada. Você continua no jogo, mas passa o direito de apostar ao jogador à sua
+esquerda.
+Se houver aposta na mesa, você pode:
+Desistir (fold): Abandonar o jogo, não tendo mais, consequentemente, a possibilidade de ganhar a mesa. Você perde
+todas as fichas que apostou anteriormente.
+Pagar (call): Fazer uma aposta de valor igual à anterior.
+Aumentar a aposta ou repicar (raise): Fazer uma aposta de valor superior à anterior. Agora, todos os jogadores têm de
+pagar ou aumentar essa aposta para continuar no jogo.
+Nota: em cada rodada de apostas, as apostas continuam até o jogador imediatamente à direita do último jogador a
+fazer uma aposta. Quando essa pessoa joga, a próxima rodada de apostas começa ou o jogo chega ao fim.
+Abertura das cartas (showdown)
+Quando a última aposta na última rodada de apostas é feita, os jogadores revelam suas cartas, um de cada vez, o que
+determina quem vence o jogo. Se houver empate, o montante da mesa é dividido igualmente entre os jogadores. A sala de
+pôquer tmabém recebe uma “comissão” (rake), isto é, fichas que são retiradas do montante da mesa antes de ele ser dado
+
+
+                                                                                                                      2/5
+                                                                                                       Fevereiro/2010
+
+ao(s) vencedor(es).
+
+Vitória por desistência
+Caso um jogador aposte ou aumente uma aposta e os demais jogadores desistam, não há abertura de cartas e o jogador
+que fez a aposta ganha a mesa, descontada a comissão. O vencedor não é obrigado a mostrar sua mão aos outros
+jogadores.
+
+TÁTICAS DE APOSTA
+
+Cotra-repicar (reraise): O jogador anterior aumentou a aposta, mas você sente que tem uma mão muito boa. Então,
+você pode aumentar a aposta novamente, forçando o(s) outro(s) jogador(es) a continuar no jogo ou desistir. Algumas
+salas de pôquer permitem que dois jogadores repiquem indefinidamente as apostas. Outras estabelecem um limite de
+repiques por rodada.
+
+Passa em falso (check-raise): Você acredita que tem uma mão muito boa e quer ganhar mais do que há na mesa.
+Então, você passa a vez, o adversário aposta e você aumenta a dele. Agora ele paga a aposta e, se sua mão é tão boa
+quanto pensou, você vence o jogo. Esse é um recurso poderoso, mas arriscado, pois o adversário pode adotar a mesma
+tática e você pode perder.
+
+Passar-e-pagar (check-and-call): se você tem uma mão boa, mas percebe que a probabilidade de o adversário
+possuir uma melhor que a sua é grande, você pode evitar aumentar a aposta passando a vez nessa rodada e pagando na
+próxima.
+
+Apostas forçadas (blinds)
+Para evitar que um jogador desista do jogo sem fazer apostas antes mesmo de ver sua mão, todos os jogadores são
+forçados, antes do inicio do jogo, a pagar uma “taxa”, a chamada aposta forçada (ou blind, aposta “às cegas”, pois o
+jogador aposta antes de saber sua probabilidade de ganhar).
+O jogador à esquerda do carteador faz uma small blind, e o jogador à esquerda deste, uma big blind, que é duas vezes
+maior que a small. Os outros jogadores podem pagar ou aumentar a aposta ou desistir. Assim, a big blind é a aposta
+mínima nos jogos com limite.
+
+Posição dos jogadores
+
+O jogador à esquerda daquele que fez a big blind é o primeiro a apostar, e o que fez a big blind, o último. A rodada de
+apostas começa, então, com o jogador à esquerda do que fez a big blind. Em todas as rodadas posteriores, o small blind
+é o primeiro a apostar e o carteador, o último. A posição dos jogadores é muito importante no pôquer, pois a informação
+é crucial e cada aposta lhe dá indicações da mão dos adversários. Assim, se alguém aposta antes de você, você terá mais
+segurança ao decidir que atitude tomas.
+
+PÔQUER SEM LIMITE
+No pôquer sem limite, pode-se usar a maior parte das estratégias de aposta, o que torna o jogo bastante interessante, mas
+também tenso. Em casa rodada, você poderá ganhar ou perder uma fortuna. Não há limite máximo de apostas em
+nenhuma rodada. No entanto, como no pôquer com limite, há uma aposta mínima. E o que acontece se, por exemplo, o
+jogador anterior apostou $200 e você tem $100? Você apostar tudo o que tem (all-in); nessa situação, diz-se que você
+ficou “quebrado”. Ganhando a partida, receberá apenas $100 de seu adversário. Se dois jogadores apostam $200 e você
+ganhar com os únicos $100 que apostou, receberá $100 de cada um deles. O vencedor entre esses dois jogadores ficará
+com o restante.
+Uma mesa com grande quantidade de fichas é muito atrativa e, ao mesmo tempo, arriscada. Por isso, a maior parte das
+salas de pôquer limita a quantidade de fichas que um jogador pode colocar na mesa inicialmente.
+
+TERMOS BÁSICOS
+Apostas forçadas (blinds): Apostas que devem ser feitas pelos dois jogadores imediatamente à esquerda do carteador
+antes da distribuição das cartas. O jogador à esquerda do carteador antes da distribuição das cartas. O jogador à esquerda
+do carteador faz uma small blind, e o jogador à esquerda desta, uma big blind.
+Cartas abertas (board cards): Cartas que são distribuídas viradas para cima, para que todos os jogadores as vejam.
+Flop: Conjunto das três primeiras cartas abertas no Hold'em, dando inicio à segunda rodada de apostas.
+Outs: Número de cartas que podem melhorar sua mão. Se o Flop é Q, J e 2 e você tem 10 e 9, você precisa de um K ou de
+um 8 para completar a sequência. Há quatro k e quatro 8 em jogo, então você tem um total de oito outs.
+Pingo (ante): Aposta antecipada.
+Pôquer com limite: Pôquer com apostas predeterminadas. Em um jogo de “limite $2-4”, todas as apostas e aumentos
+são de $2 nas primeiras duas rodadas (Pré-flop e Flop) e todas as apostas e aumentos são de $4 nas duas últimas (Turn e
+River).
+Posição (position): O lugar ocupado pelo jogador. O carteador ocupa a melhor posição porque ele aposta por último e,
+portanto, tem melhor noção da mão dos outros jogadores. Quem está à esquerda do carteador ocupa a pior posição, pois
+é o primeiro a jogar.
+
+
+                                                                                                                      3/5
+                                                                                                      Fevereiro/2010
+
+Pré-flop: Conjunto das cartas fechadas recebidas antes da primeira rodada de apostas no Hold'em.
+Probabilidade da mesa (pot odds): Probabilidade de sua mão vencer comparando-a com o tamanho da aposta a ser
+feita com o atual montante da mesa. Por exemplo: você tem A e 2 de ouros e na mesa há k, 7 e 6, sendo o 7 e o 6 de ouros.
+Você tem certeza de que alguém tem o K. Como existem outras nove cartas de ouros em jogo (treza menos as duas de sua
+mão e as duas da mesa), você tem aproximadamente 18 % de chance de fazer um flush na próxima rodada. Digamos que,
+no Turn, o montante da mesa é $100 e o jogador anterior aposta $300. O montante da mesa aumenta para $400 e você
+deve apostar $300 para chegar ao River. Suas probabilidades de mesa são 300/700, a qual é multo alta, considerando
+que suas chances de fazer um flush são de cerca de 1/5.
+Probabilidade implícitas (implied odds): O mesmo que probabilidades da mesa, com a diferença de que você
+calcula as probabilidades de fazer apostas futuras. Desse modo você pode pagar uma aposta no Flop, contando com
+probabilidades implícitas de fazer apostas mais altas nas rodadas posteriores. Por exemplo, se você tem A e K de ouros e
+no Flop vêm duas cartas de ouros, as probabilidades implícitas de fazer apostas altas nas próximas são bem altas.
+Tentativa de mão (drawing hand): Mão que precisa de uma única carta para melhorar. Se você tem as cartas 10 e 9 e
+o Flop é Q, J e 2, você cai tentar um 8 ou um K no Turn ou no River para formar uma sequência.
+Turn: A quarta carta aberta colocada na mesa no Hold'em, dando inicio à terceira rodada de apostas.
+River: A quinta e última carta aberta colocada na mesa no Hold'em, dando inicio à última rodada de apostas.
+
+ESTRATÉGIAS DE PÔQUER: PENSANDO COMO UM PROFISSIONAL
+
+QUATRO PRÁTICAS-CHAVE
+Em geral, os profissionais de pôquer são descritos como conservadores e agressivos. Eles observam atentamente o
+desenvolvimento do jogo, sabendo o momento certo de apostar e quanto. Para isso, eles dominam quatro tipos de
+estratégias fundamentas.
+
+1. Cálculos
+O pôquer é um jogo altamente estatístico. Veja algumas estratégias que poderão ajudá-lo a ser bem-sucedido:
+    −    Probabilidade de formar boas mãos. Um bom jogador sabe que há cerca de uma em oito chances de
+         formar uma combinação quando tem um par fechado e de cerca de uma em três chances de completar um flush
+         no Flop.
+    −    Outs. Outs são as cartas que podem melhorar sua mão. Conte o número de outs, multiplique o resultado por
+         dois e adicione dois para chegar à porcentagem aproximada que você tem de completar sua combinação.
+    −    Probabilidade da mesa. Conhecer as outs não tem sentindo se a aposta não for calculada. Sabendo que tem
+         20% de chance de completar sua mão, o que você deve fazer? Divida o valor da mesa no River (isto é, a mesa
+         atual mais a quantidade de fichas que você pretende adicionar nas apostas futuras) pelo montante que você tem.
+         Se sua chance de completar a mão é 20% e a aposta é 50, fazendo a mesa no River crescer para 250, pague Do
+         contrário, desita.
+
+2. Autocontrole e disciplina
+    − O que distingue o jogador vencer do fish (jogador ruim, que normalmente perde) é que este não tem
+        expectativas de ganhar. Ele fica feliz em jogar dados, roleta etc., porque está contando com a sorte. O bom
+        jogador de pôquer não espera ter sorte, mas sim que os outros não a tenham.
+    − O bom jogador de pôquer entende que jogos diferentes requerem tipos de abordagem distintos. Um bom
+        jogador de pôquer sem limite pode não ser bem-sucedido no pôquer com limite e vice-versa. O bom jogador de
+        pôquer com limite é muito firme desde o Pré-flop. Ele não joga muitas rodadas, apenas aquelas em que tem boas
+        chances de vencer. Já o bom jogador de pôquer sem limite é bem diferente. Ele não fica tão preocupado em fazer
+        altas apostas, em vez disso, não quer cair em armadilhas.
+    − O jogador disciplinado sabe quando jogar e quando parar. Ele reconhece com antecedência sua chance de
+        ganhar e o momento em que deve desistir.
+    − O jogador disciplinado sabe que não é perfeito. Quando comete um erro, ele aprende. Não culpa os outros. Não
+        se lamenta. Segue em frente.
+
+3. Psicologia
+    − Quando um jogador profissional entra em uma sala de pôquer, é criada uma atmosfera de empatia entre os
+        adversários. Ele procura pensar como eles e entender as decisões que tornam e por quê. Procura responder as
+        seguintes perguntas:
+        − O que meu adversário tem?
+        − O que meu adversário pensa que eu tenho?
+        − O que meu adversário pensa que eu acredito que ele tem?
+    − O primeiro passo é obter as respostas a essas perguntas. O segundo e mais importante é saber como usá-las. Se
+        você tem um par de reis e seu adversário tem um par de ases e ambos sabem o que o outro tem e têm
+        consciência disso, por que jogar? O jogador profissional utiliza as duas últimas respostas deixando o jogo mais
+        lento ou mais rápido e blefando para derrotar o adversário.
+    − O bom jogador de pôquer sabe que a psicologia é muito, muito, muito mais importante em um jogo sem limite
+
+
+                                                                                                                     4/5
+                                                                                                   Fevereiro/2010
+
+        do que em um com limite. Jogos com limite muitas vezes se transformam em batalhas matemáticas, enquanto
+        jogos sem limite têm um forte componente psicológico.
+
+4. Relação risco-recompensa
+    − Probabilidades da mesa e administração de vantagem entram nessa categoria. Os jogadores de pôquer
+        costumam fazer jogadas arriscadas se a recompensa é alta, mas apenas se a expectativa de retorno é tão grande
+        quanto o risco.
+    − Mais importante, eles perceberem qual é a relação risco-recompensa do jogo. Eles sabem quanto podem gastar
+        para jogar para que não quebrem em sua pessoal.
+    − Assim como os investidores, um jogador é classificado como conservador, moderado ou agressivo, dependendo
+        do risco que está disposto a correr. O jogador agressivo não se importa em arriscar o que tem, o moderado é
+        indiferente e o conservador nunca arrisca tudo. Um bom jogador de pôquer é moderado quanto ao risco, pois
+        procura uma recompensa grande o suficiente para não ser considerado conservador, mas valoriza a quantia que
+        tem em seu montante.
+
+
+Este manual tem o patrocínio da LIGA de POKER dos PRIMO$.
+
+
+
+
+                                                                                                                 5/5
+

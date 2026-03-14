@@ -1,0 +1,144 @@
+Regras como jogar Poker
+O Baralho
+
+Um baralho de poker contem 52 cartas. Estas castas são divididas em 4 naipes, esses são
+divididos em 13 numerações.
+
+Os 4 Naipes
+
+Os naipes são todos de igual valor. Isso quer dizer que nenhum naipe vale mais que o outro.
+
+
+
+
+As 13 Numerações
+
+No poker, o Ás é a maior carta e o 2 a menor. Entretanto o Ás pode ser usado como caixa baixa
+para se fazer um Straight Flush 5432ª (veja adiante no próximo item).
+As Mãos do Poker
+
+Straight Flush
+
+
+
+
+A melhor mão de poker é o Straight Flush. São cinco cartas em sequência e do mesmo naipe. É
+muito raro. Se dois jogadores seguram um Straight Flush, quem tiver a carta mais alta ganha.
+Se a carta mais alta for igual, as mãos são iguais. Os naipes diferentes não têm valores
+diferentes nas mãos de poker, portanto um Straight Flush de copas não ganhar de um Straight
+Flush de paus. EM Straight Flush com um Ás alto se chama sequencia Real (Royal Flush).
+
+Quadra
+
+
+
+
+Também chamada de four of a Kind, é a segunda mão mais alta. É uma mão com quatro cartas
+do mesmo valor. Se dois jogadores tem uma quadra, ganha quem tiver as quatro mais altas.
+Por exemplo, quatro 10 ganham de quatro 8. Se dois jogadores tem uma quadra com as
+mesmas quatro cartas, ganhara quem tiver a quinta carta maior. Esta carta se chama carta
+lateral ou Kicker*. Se as cartas laterais também sã o do mesmo valor, haverá um empate e as
+apostas são divididas.
+
+Full House
+O Full House é uma mão com uma Trinca e um Par. se dois jogadores tem um Full House,
+ganha quem tiver a Trinca mais alta. Se a trinca for igual, ganhara quem tiver o Par mais alto.
+
+Flush
+
+
+
+
+Quando todas as cinco cartas forem do mesmo naipe, a mão é chamada de Flush. Se dois
+jogadores tem um Flush, ganhara quem tiver a carta mais alta. Se forem iguais, ganhara quem
+tiver a segunda carta mais alta, e assim por diante.
+
+Sequência
+
+
+
+
+Para uma mão ser uma sequência (ou Straight), as cinco cartas têm que estar em sequência
+numérica. Se dois jogadores tem uma sequência, ganhara quem tiver a carta mais alta.
+
+Trinca
+
+
+
+
+Uma mão com três cartas de mesmo valor é uma trinca (Three of a Kind) – se as duas restantes
+não forem um Par. Se dois jogadores tem uma trinca, ganha quem tiver as três cartas mais
+altas. Se as três cartas forem iguais, a mão com a maior carta lateral ganha, ou se as cartas
+laterais também forem iguais, quem tiver a segunda maior carta lateral ganha.
+Dois Pares
+
+
+
+
+Dois Pares (Two Pairs) é como o próprio nome diz, duas cartas de um valor, mais duas cartas
+de outro valor. Se dois jogadores têm dois pares, ganhará quem tiver o maior par ou, se estes
+forem iguais, o jogador com o segundo maior Par ganhará. Se os dois Pares são iguais, mão
+com a melhor carta Kicker ganhará.
+
+Par
+
+
+
+
+Se duas cartas na mão são do mesmo valor, e nenhuma das outras podem ser aproveitados, a
+mão é um par. Se dois jogadores tem um par, ganhara quem tiver o maior Par. Se este forem
+do mesmo valor, a mão com a maior carta lateral ganhara. Se estas também são iguais, quem
+tiver a segunda maior carta lateral ganhara, e assim por diante.
+
+A mão com a Maior carta
+
+ Se nenhuma mão tem qualquer das combinações mencionadas anterior mente, a mão com a
+maior carta Kicker ganhará. Uma mão com um Ás ganha de uma mão com um rei, uma mão
+com um rei de uma mão com um rei ganha de uma mão com uma Dama e assim por diante. Se
+todas as cinco cartas forem iguais, haverá um empate e as apostas são divididas.
+
+Dê as cartas no TEXAS HOLD’EM
+ No Texas Hold’Em, cada jogador recebe 2 cartas que só ele pode ver ou usar. Depois são
+distribuídas 5 cartas na mesa, com as faces voltadas para baixo. Essas cartas são coletivas e
+todos os jogadores podem usa-las para fazer seu jogo de 5 cartas. Para fazer um jogo de 5
+cartas, cada jogador poderá usar todas ou nenhuma das cartas de sua mão (ou seja, ele poderá
+usar de 3 a 5 cartas comunitárias).
+O jogo é dividido em quatro rodadas, que são realizadas no sentido horário da mesa. As
+apostas começam pelo jogador que está ao lado esquerdo do dealer*.
+Se dois ou mais jogadores tem mãos do mesmo valor e empatam, as fichas serão divididas
+entre esses jogadores.
+Apesar de poder ser jogado por até 22 jogadores, o Texas Hold’Em é geralmente jogado por
+entre duas a dez pessoas.
+Estrutura do Jogo
+
+1 - Os jogadores da mesa deverão fazer um sorteio para decidir quem começara como dealer.
+O dealer é responsável pela distribuição das cartas dos jogadores e das cartas comunitárias.
+Automaticamente, ao lado esquerdo do dealer estará o Small Blind* e à esquerda deste estará
+o Big Blind*.
+
+2 - Depois que as cartas forem dadas, o Small Blind e o Bing Blind devem colocar suas apostas
+obrigatórias na mesa. Os Blinds asseguram que existira apostas desde o início do jogo.
+
+3 - Em seguida, o primeiro jogador a esquerda do Big Blind terá que optar por três jogadas:
+Pagar (igualar o valor apostado pelo Big Blind); Apostas (aumentar o valor apostados pelo Big
+Blind); ou desistir (descartas suas cartas e desistir da aposta no jogo). Terminada a sua ação, é
+a vez do próximo jogadores e assim continua até que todos os jogadores da mesa tenham feito
+suas ações.
+
+4 - Depois das ações de todos os jogadores, o dealer deverá aplicar o flop* (virar para cima as
+três primeiras cartas da mesa).
+
+5 - Em seguida, o jogador à esquerda do dealer deverá pedir mesa (passar) ou apostas, e assim
+segue até o último jogador. O dealer faz então o turn* (virar para cima a 4ª carta da mesa).
+
+6 - Novamente. O jogador à esquerda do dealer pede mesa ou aposta. Depois que todos os
+jogadores agirem, o dealer deverá aplicar o river* (virar para cima a 5ª carta da mesa).
+
+7 - Agora é a última rodada de apostas. O jogador à esquerda do dealer deverá pedir mesa ou
+apostar. Depois da ação de todos os jogadores, aqueles que estiverem jogando revelam suas
+mãos (showdown*) para ver quem ganhou as fichas da mesa.
+
+8 - Finalizada essa rodada, o jogador que está como dealer deverá passar seu botão para o
+jogador à sua esquerda. Os jogadores com os botões de Small e Big Blind fazem mesmo. Então,
+inicia-se uma nova rodada.
+
