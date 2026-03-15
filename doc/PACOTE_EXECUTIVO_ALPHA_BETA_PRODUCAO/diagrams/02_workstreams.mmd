@@ -1,0 +1,16 @@
+flowchart TB
+subgraph Programa
+W1[Alpha Core]
+W2[Beta Platform]
+W3[Production Hardening]
+W4[FinOps]
+W5[Governança]
+end
+
+W1 --> W2 --> W3
+W4 --> W1
+W4 --> W2
+W4 --> W3
+W5 --> W1
+W5 --> W2
+W5 --> W3

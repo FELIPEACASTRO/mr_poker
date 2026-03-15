@@ -1,0 +1,102 @@
+[
+  {
+    "name": "seat0_pair_of_aces_beats_kings_all_in_preflop",
+    "stacks": [
+      20,
+      20
+    ],
+    "button_seat": 0,
+    "deck_prefix": [
+      "As",
+      "Kd",
+      "Ah",
+      "Kc",
+      "2d",
+      "7h",
+      "9c",
+      "Jd",
+      "3s",
+      "4c",
+      "5d",
+      "8h"
+    ],
+    "actions": [
+      {
+        "action_type": "all_in",
+        "amount": 0
+      },
+      {
+        "action_type": "call",
+        "amount": 0
+      }
+    ],
+    "expected": {
+      "winner_seat": 0,
+      "terminal": true,
+      "seat0_stack": 40,
+      "seat1_stack": 0
+    }
+  },
+  {
+    "name": "board_straight_chops",
+    "stacks": [
+      20,
+      20
+    ],
+    "button_seat": 0,
+    "deck_prefix": [
+      "2c",
+      "3d",
+      "4h",
+      "5s",
+      "9c",
+      "As",
+      "Kd",
+      "Qh",
+      "8s",
+      "Jc",
+      "7d",
+      "Th"
+    ],
+    "actions": [
+      {
+        "action_type": "call",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      }
+    ],
+    "expected": {
+      "winner_seat": null,
+      "terminal": true,
+      "seat0_stack": 20,
+      "seat1_stack": 20
+    }
+  }
+]

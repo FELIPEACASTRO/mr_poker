@@ -1,0 +1,11 @@
+Dimensão,Gate Alpha,Gate Beta,Gate Produção
+Escopo,"Heads-up, local-first, fluxo fim a fim funcional",Piloto fechado com usuários controlados,Produto operacional com ambientes formais
+Regras/Engine,Regras principais e replay determinístico aprovados,Sem regressão de engine em piloto,Hardening operacional da engine
+Dados,Dataset oficial v1 congelado,Coleta incremental confiável,Registry/governança reforçados
+Modelo,Candidate alpha selecionado e avaliado,Candidate beta estável e superior ao alpha,Candidate production aprovado
+Avaliação,Benchmark oficial e score por taxonomy,Monitoramento contínuo e comparativos por versão,Política formal de promoção/rebaixamento
+Coach,Explicações coerentes com a decisão,Utilidade percebida por usuários piloto,Camada estável com governança e rastreabilidade
+Operação,Packaging e release gate funcionais,Deploy repetível e rollback básico,"Observabilidade, segurança e operação plenas"
+FinOps,Budget local e retenção controlada,Custo por ambiente e por sessão monitorados,FinOps contínuo com custo unitário e capacidade
+Segurança,Mínimo suficiente para ambiente controlado,Auth básica e segredos por ambiente,"Hardening, secret management e trilha de auditoria"
+Produto,Fluxo interno utilizável,UX aprovada em piloto fechado,UX e suporte adequados para produção

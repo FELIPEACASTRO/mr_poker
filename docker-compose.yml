@@ -1,0 +1,17 @@
+services:
+  api:
+    build: .
+    container_name: mr_pocker_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      POKER_AI_DB: var/poker_ai_local.db
+    volumes:
+      - ./:/app
+    healthcheck:
+      test: ["CMD", "python", "infra/scripts/healthcheck.py"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

@@ -1,0 +1,6 @@
+{
+  "env": "local",
+  "db_path": "var/poker_ai_local.db",
+  "report_dir": "var/reports",
+  "dataset_dir": "var/datasets"
+}

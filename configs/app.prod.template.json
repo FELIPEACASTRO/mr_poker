@@ -1,0 +1,6 @@
+{
+  "env": "prod-template",
+  "db_path": "/data/poker_ai.db",
+  "report_dir": "/data/reports",
+  "dataset_dir": "/data/datasets"
+}

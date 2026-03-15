@@ -1,0 +1,14 @@
+flowchart LR
+A[Laboratório concluído] --> B[Alpha controlado]
+B --> C[Beta fechado]
+C --> D[Produção inicial]
+
+subgraph Gates
+G1[Gate Alpha]
+G2[Gate Beta]
+G3[Gate Produção]
+end
+
+A --> G1 --> B
+B --> G2 --> C
+C --> G3 --> D

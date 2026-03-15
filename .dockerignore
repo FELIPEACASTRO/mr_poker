@@ -1,0 +1,16 @@
+.git
+.github
+__pycache__
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.venv
+*.pyc
+*.pyo
+*.pyd
+htmlcov
+coverage.xml
+pytest.xml
+var/reports
+var/batches
+var/regression

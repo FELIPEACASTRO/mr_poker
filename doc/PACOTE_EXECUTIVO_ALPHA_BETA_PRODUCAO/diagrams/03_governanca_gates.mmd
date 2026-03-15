@@ -1,0 +1,16 @@
+flowchart TD
+A[Dataset oficial v1]
+B[Candidate alpha]
+C[Round-robin oficial]
+D[Regression suite]
+E[Model card]
+F[Release gate]
+
+A --> F
+B --> F
+C --> F
+D --> F
+E --> F
+
+F -->|Aprovado| G[Promover fase]
+F -->|Reprovado| H[Voltar ao backlog]

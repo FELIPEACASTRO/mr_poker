@@ -1,0 +1,8 @@
+{
+  "name": "sample_solver_v1",
+  "labels": [
+    {"spot_id": "hu_flop_cbet_ip", "action": "bet", "confidence": 0.82},
+    {"spot_id": "hu_turn_barrel_ip", "action": "bet", "confidence": 0.77},
+    {"spot_id": "hu_river_bluffcatch_oop", "action": "call", "confidence": 0.64}
+  ]
+}
