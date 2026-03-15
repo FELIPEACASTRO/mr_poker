@@ -41,4 +41,9 @@ def test_api_sprint20_dataset_tournament_and_readiness(tmp_path) -> None:
 
     readiness = client.get('/v1/system/readiness')
     assert readiness.status_code == 200
-    assert 'production_candidate' in readiness.json()
+    payload = readiness.json()
+    assert 'production_candidate' in payload
+    assert 'asset_readiness' in payload
+    assert 'operational_readiness' in payload
+    assert 'operational_blockers' in payload
+    assert 'deprecations' in payload

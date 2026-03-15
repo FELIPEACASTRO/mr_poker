@@ -12,6 +12,7 @@ dependencies = [
   "pydantic>=2.8",
   "fastapi>=0.115",
   "uvicorn>=0.30",
+  "eval7>=0.1.10",
 ]
 
 [project.optional-dependencies]
@@ -40,6 +41,18 @@ target-version = "py311"
 
 [tool.mypy]
 python_version = "3.11"
-warn_return_any = true
+strict = true
+implicit_reexport = true
 warn_unused_configs = true
-disallow_untyped_defs = false
+follow_imports = "skip"
+files = [
+  "services/cqrs",
+  "services/session_service/service.py",
+  "packages/equity/monte_carlo.py",
+  "packages/evaluator/hands.py",
+  "packages/persistence/sqlite_store.py",
+  "packages/baseline_agent",
+  "packages/external_solver/adapter.py",
+  "services/external_solver_service/service.py",
+  "infra/scripts/perf_gate_v1.py",
+]

@@ -1,9 +1,22 @@
 from __future__ import annotations
 
 from collections import Counter
+from functools import lru_cache
 from itertools import combinations
+from typing import Any
 
 from packages.engine.models import Card
+
+try:
+    import eval7  # type: ignore[import-not-found]
+except Exception:  # pragma: no cover - optional perf dependency
+    eval7 = None
+try:
+    from treys import Card as TreysCard  # type: ignore[import-untyped]
+    from treys import Evaluator as TreysEvaluator
+except Exception:  # pragma: no cover - optional perf dependency
+    TreysCard = None
+    TreysEvaluator = None
 
 CATEGORY_LABELS = {
     8: "straight_flush",
@@ -18,6 +31,33 @@ CATEGORY_LABELS = {
 }
 
 RANK_TO_VALUE = {r: i for i, r in enumerate("..23456789TJQKA")}
+HANDTYPE_TO_CATEGORY = {
+    "high_card": 0,
+    "pair": 1,
+    "one_pair": 1,
+    "two_pair": 2,
+    "trips": 3,
+    "three_of_a_kind": 3,
+    "straight": 4,
+    "flush": 5,
+    "full_house": 6,
+    "quads": 7,
+    "four_of_a_kind": 7,
+    "straight_flush": 8,
+}
+TREYS_CLASS_TO_CATEGORY = {
+    0: 8,  # Royal Flush (treys-specific subclass of straight flush)
+    1: 8,  # Straight Flush
+    2: 7,  # Four of a Kind
+    3: 6,  # Full House
+    4: 5,  # Flush
+    5: 4,  # Straight
+    6: 3,  # Three of a Kind
+    7: 2,  # Two Pair
+    8: 1,  # One Pair
+    9: 0,  # High Card
+}
+TREYS_EVALUATOR = TreysEvaluator() if TreysEvaluator is not None else None
 
 
 def _straight_high(values: list[int]) -> int | None:
@@ -31,7 +71,58 @@ def _straight_high(values: list[int]) -> int | None:
     return None
 
 
+@lru_cache(maxsize=52)
+def _eval7_card_from_str(card_repr: str) -> Any:
+    if eval7 is None:
+        raise RuntimeError("eval7 unavailable")
+    return eval7.Card(card_repr)
+
+
+def _normalize_handtype(handtype: str) -> str:
+    return handtype.strip().lower().replace(" ", "_")
+
+
+@lru_cache(maxsize=52)
+def _treys_card_from_str(card_repr: str) -> int:
+    if TreysCard is None:
+        raise RuntimeError("treys unavailable")
+    return int(TreysCard.new(card_repr))
+
+
+def _rank_with_eval7(cards: list[Card]) -> tuple[int, tuple[int, ...]]:
+    if eval7 is None:
+        raise RuntimeError("eval7 unavailable")
+    score = int(eval7.evaluate([_eval7_card_from_str(str(card)) for card in cards]))
+    handtype = _normalize_handtype(str(eval7.handtype(score)))
+    category = HANDTYPE_TO_CATEGORY.get(handtype)
+    if category is None:
+        raise ValueError(f"unsupported eval7 handtype: {handtype}")
+    return category, (score,)
+
+
+def _rank_with_treys(cards: list[Card]) -> tuple[int, tuple[int, ...]]:
+    if TREYS_EVALUATOR is None:
+        raise RuntimeError("treys unavailable")
+    ints = [_treys_card_from_str(str(card)) for card in cards]
+    hand = ints[:2]
+    board = ints[2:]
+    score = int(TREYS_EVALUATOR.evaluate(board, hand))
+    rank_class = int(TREYS_EVALUATOR.get_rank_class(score))
+    category = TREYS_CLASS_TO_CATEGORY.get(rank_class)
+    if category is None:
+        raise ValueError(f"unsupported treys rank class: {rank_class}")
+    # treys uses lower-is-better rank values; invert to preserve higher-is-better tuple compare.
+    return category, (-score,)
+
+
 def evaluate_five(cards: list[Card]) -> tuple[int, tuple[int, ...]]:
+    if len(cards) != 5:
+        raise ValueError("evaluate_five requires exactly 5 cards")
+    if eval7 is not None:
+        return _rank_with_eval7(cards)
+    if TREYS_EVALUATOR is not None:
+        return _rank_with_treys(cards)
+
     values = sorted((RANK_TO_VALUE[c.rank] for c in cards), reverse=True)
     suits = [c.suit for c in cards]
     counts = Counter(values)
@@ -70,6 +161,11 @@ def evaluate_five(cards: list[Card]) -> tuple[int, tuple[int, ...]]:
 def best_hand_rank(cards: list[Card]) -> tuple[int, tuple[int, ...]]:
     if len(cards) < 5:
         raise ValueError("need at least 5 cards")
+    if eval7 is not None:
+        # eval7 natively handles 5-7 cards and picks the best 5-card hand.
+        return _rank_with_eval7(cards)
+    if TREYS_EVALUATOR is not None and len(cards) <= 7:
+        return _rank_with_treys(cards)
     return max(evaluate_five(list(combo)) for combo in combinations(cards, 5))
 
 

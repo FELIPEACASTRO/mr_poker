@@ -1,4 +1,8 @@
 
+import subprocess
+import sys
+from pathlib import Path
+
 from services.governance_service import GovernanceService
 from services.regression_suite_service import RegressionSuiteService
 from services.deploy_service import DeployService
@@ -24,3 +28,15 @@ def test_release_notes_current():
     notes = svc.current_notes()
     assert notes['release_train'] == 'Sprint 21-30'
     assert len(notes['highlights']) >= 3
+
+
+def test_audit_consistency_guardrail_script():
+    repo_root = Path(__file__).resolve().parents[2]
+    script = repo_root / 'infra' / 'scripts' / 'audit_consistency_check.py'
+    result = subprocess.run(
+        [sys.executable, str(script), '--repo-root', str(repo_root), '--strict'],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, f'audit consistency check failed\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}'

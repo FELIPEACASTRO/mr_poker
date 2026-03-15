@@ -6,8 +6,88 @@ from pathlib import Path
 from typing import Any
 
 
+class SqliteUnitOfWork:
+    """Transactional write unit for batched hand persistence."""
+
+    def __init__(self, store: "SqliteHandStore") -> None:
+        self._store = store
+        self._conn: sqlite3.Connection | None = None
+
+    def __enter__(self) -> "SqliteUnitOfWork":
+        conn = self._store._connect()
+        conn.execute("PRAGMA foreign_keys=ON")
+        self._conn = conn
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        conn = self._conn
+        if conn is None:
+            return
+        try:
+            if exc_type is None:
+                conn.commit()
+            else:
+                conn.rollback()
+        finally:
+            conn.close()
+            self._conn = None
+
+    def _require_conn(self) -> sqlite3.Connection:
+        if self._conn is None:
+            raise RuntimeError("SqliteUnitOfWork must be used inside a context block")
+        return self._conn
+
+    def create_hand(
+        self,
+        *,
+        hand_id: str,
+        button_seat: int,
+        stacks: tuple[int, int],
+        seed: int | None,
+        deck_prefix: list[str],
+        initial_snapshot: dict[str, Any],
+        session_id: str | None = None,
+    ) -> None:
+        conn = self._require_conn()
+        self._store._create_hand_on_conn(
+            conn,
+            hand_id=hand_id,
+            button_seat=button_seat,
+            stacks=stacks,
+            seed=seed,
+            deck_prefix=deck_prefix,
+            session_id=session_id,
+        )
+        self._store._append_snapshot_on_conn(
+            conn,
+            hand_id=hand_id,
+            snapshot_order=0,
+            snapshot=initial_snapshot,
+            label="initial",
+        )
+
+    def append_hand_batch(
+        self,
+        *,
+        hand_id: str,
+        session_id: str | None,
+        actions: list[tuple[int, str, int, int]],
+        snapshots: list[tuple[int, dict[str, Any], str]],
+        decision_traces: list[tuple[int, dict[str, Any]]],
+    ) -> None:
+        conn = self._require_conn()
+        self._store._append_hand_batch_on_conn(
+            conn,
+            hand_id=hand_id,
+            session_id=session_id,
+            actions=actions,
+            snapshots=snapshots,
+            decision_traces=decision_traces,
+        )
+
+
 class SqliteHandStore:
-    def __init__(self, db_path: str = 'var/poker_ai_local.db') -> None:
+    def __init__(self, db_path: str = "var/poker_ai_local.db") -> None:
         self.db_path = db_path
         path = Path(db_path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -20,11 +100,10 @@ class SqliteHandStore:
 
     def _init_db(self) -> None:
         with self._connect() as conn:
-            conn.execute('PRAGMA journal_mode=WAL')
-            conn.execute('PRAGMA synchronous=NORMAL')
-            conn.execute('PRAGMA foreign_keys=ON')
-            conn.executescript(
-                """
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA foreign_keys=ON")
+            conn.executescript("""
                 CREATE TABLE IF NOT EXISTS hands (
                     hand_id TEXT PRIMARY KEY,
                     session_id TEXT,
@@ -72,15 +151,24 @@ class SqliteHandStore:
                 CREATE INDEX IF NOT EXISTS idx_snapshots_hand_order ON snapshots(hand_id, snapshot_order);
                 CREATE INDEX IF NOT EXISTS idx_decision_traces_hand ON decision_traces(hand_id);
                 CREATE INDEX IF NOT EXISTS idx_decision_traces_session ON decision_traces(session_id);
-                CREATE INDEX IF NOT EXISTS idx_hands_session ON hands(session_id);
-                """
+                """)
+            self._ensure_column(conn, "hands", "session_id", "TEXT")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_hands_session ON hands(session_id)"
             )
-            self._ensure_column(conn, 'hands', 'session_id', 'TEXT')
 
-    def _ensure_column(self, conn: sqlite3.Connection, table: str, column: str, column_type: str) -> None:
-        existing = {row['name'] for row in conn.execute(f'PRAGMA table_info({table})').fetchall()}
+    def uow(self) -> SqliteUnitOfWork:
+        return SqliteUnitOfWork(self)
+
+    def _ensure_column(
+        self, conn: sqlite3.Connection, table: str, column: str, column_type: str
+    ) -> None:
+        existing = {
+            row["name"]
+            for row in conn.execute(f"PRAGMA table_info({table})").fetchall()
+        }
         if column not in existing:
-            conn.execute(f'ALTER TABLE {table} ADD COLUMN {column} {column_type}')
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
 
     def create_hand(
         self,
@@ -90,130 +178,315 @@ class SqliteHandStore:
         stacks: tuple[int, int],
         seed: int | None,
         deck_prefix: list[str],
-        initial_snapshot: dict,
+        initial_snapshot: dict[str, Any],
         session_id: str | None = None,
     ) -> None:
         with self._connect() as conn:
-            conn.execute(
-                'INSERT OR REPLACE INTO hands (hand_id, session_id, button_seat, stacks_json, seed, deck_prefix_json) VALUES (?, ?, ?, ?, ?, ?)',
-                (hand_id, session_id, button_seat, json.dumps(list(stacks)), seed, json.dumps(deck_prefix)),
+            self._create_hand_on_conn(
+                conn,
+                hand_id=hand_id,
+                button_seat=button_seat,
+                stacks=stacks,
+                seed=seed,
+                deck_prefix=deck_prefix,
+                session_id=session_id,
             )
-        self.append_snapshot(hand_id=hand_id, snapshot_order=0, snapshot=initial_snapshot, label='initial')
+            self._append_snapshot_on_conn(
+                conn,
+                hand_id=hand_id,
+                snapshot_order=0,
+                snapshot=initial_snapshot,
+                label="initial",
+            )
 
-    def append_action(self, *, hand_id: str, actor_seat: int, action_type: str, amount: int) -> None:
+    def _create_hand_on_conn(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        hand_id: str,
+        button_seat: int,
+        stacks: tuple[int, int],
+        seed: int | None,
+        deck_prefix: list[str],
+        session_id: str | None,
+    ) -> None:
+        conn.execute(
+            "INSERT OR REPLACE INTO hands (hand_id, session_id, button_seat, stacks_json, seed, deck_prefix_json) VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                hand_id,
+                session_id,
+                button_seat,
+                json.dumps(list(stacks)),
+                seed,
+                json.dumps(deck_prefix),
+            ),
+        )
+
+    def append_action(
+        self, *, hand_id: str, actor_seat: int, action_type: str, amount: int
+    ) -> None:
         with self._connect() as conn:
-            row = conn.execute('SELECT COALESCE(MAX(action_order), -1) AS max_order FROM action_log WHERE hand_id = ?', (hand_id,)).fetchone()
-            action_order = int(row['max_order']) + 1
+            row = conn.execute(
+                "SELECT COALESCE(MAX(action_order), -1) AS max_order FROM action_log WHERE hand_id = ?",
+                (hand_id,),
+            ).fetchone()
+            action_order = int(row["max_order"]) + 1
             conn.execute(
-                'INSERT INTO action_log (hand_id, actor_seat, action_type, amount, action_order) VALUES (?, ?, ?, ?, ?)',
+                "INSERT INTO action_log (hand_id, actor_seat, action_type, amount, action_order) VALUES (?, ?, ?, ?, ?)",
                 (hand_id, actor_seat, action_type, amount, action_order),
             )
 
-    def append_snapshot(self, *, hand_id: str, snapshot_order: int | None = None, snapshot: dict, label: str) -> None:
+    def append_action_with_order(
+        self,
+        *,
+        hand_id: str,
+        actor_seat: int,
+        action_type: str,
+        amount: int,
+        action_order: int,
+    ) -> None:
         with self._connect() as conn:
-            if snapshot_order is None:
-                row = conn.execute('SELECT COALESCE(MAX(snapshot_order), -1) AS max_order FROM snapshots WHERE hand_id = ?', (hand_id,)).fetchone()
-                snapshot_order = int(row['max_order']) + 1
             conn.execute(
-                'INSERT INTO snapshots (hand_id, snapshot_order, snapshot_json, label) VALUES (?, ?, ?, ?)',
-                (hand_id, snapshot_order, json.dumps(snapshot), label),
+                "INSERT INTO action_log (hand_id, actor_seat, action_type, amount, action_order) VALUES (?, ?, ?, ?, ?)",
+                (hand_id, actor_seat, action_type, amount, action_order),
             )
 
-    def append_decision_trace(self, *, session_id: str | None, hand_id: str, actor_seat: int, trace: dict) -> None:
+    def append_snapshot(
+        self,
+        *,
+        hand_id: str,
+        snapshot_order: int | None = None,
+        snapshot: dict[str, Any],
+        label: str,
+    ) -> None:
+        with self._connect() as conn:
+            self._append_snapshot_on_conn(
+                conn,
+                hand_id=hand_id,
+                snapshot_order=snapshot_order,
+                snapshot=snapshot,
+                label=label,
+            )
+
+    def _append_snapshot_on_conn(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        hand_id: str,
+        snapshot_order: int | None,
+        snapshot: dict[str, Any],
+        label: str,
+    ) -> None:
+        if snapshot_order is None:
+            row = conn.execute(
+                "SELECT COALESCE(MAX(snapshot_order), -1) AS max_order FROM snapshots WHERE hand_id = ?",
+                (hand_id,),
+            ).fetchone()
+            snapshot_order = int(row["max_order"]) + 1
+        conn.execute(
+            "INSERT INTO snapshots (hand_id, snapshot_order, snapshot_json, label) VALUES (?, ?, ?, ?)",
+            (hand_id, snapshot_order, json.dumps(snapshot), label),
+        )
+
+    def append_hand_batch(
+        self,
+        *,
+        hand_id: str,
+        session_id: str | None,
+        actions: list[tuple[int, str, int, int]],
+        snapshots: list[tuple[int, dict[str, Any], str]],
+        decision_traces: list[tuple[int, dict[str, Any]]],
+    ) -> None:
+        with self._connect() as conn:
+            self._append_hand_batch_on_conn(
+                conn,
+                hand_id=hand_id,
+                session_id=session_id,
+                actions=actions,
+                snapshots=snapshots,
+                decision_traces=decision_traces,
+            )
+
+    def _append_hand_batch_on_conn(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        hand_id: str,
+        session_id: str | None,
+        actions: list[tuple[int, str, int, int]],
+        snapshots: list[tuple[int, dict[str, Any], str]],
+        decision_traces: list[tuple[int, dict[str, Any]]],
+    ) -> None:
+        if actions:
+            conn.executemany(
+                "INSERT INTO action_log (hand_id, actor_seat, action_type, amount, action_order) VALUES (?, ?, ?, ?, ?)",
+                [
+                    (hand_id, actor_seat, action_type, amount, action_order)
+                    for actor_seat, action_type, amount, action_order in actions
+                ],
+            )
+        if snapshots:
+            conn.executemany(
+                "INSERT INTO snapshots (hand_id, snapshot_order, snapshot_json, label) VALUES (?, ?, ?, ?)",
+                [
+                    (hand_id, snapshot_order, json.dumps(snapshot), label)
+                    for snapshot_order, snapshot, label in snapshots
+                ],
+            )
+        if decision_traces:
+            conn.executemany(
+                "INSERT INTO decision_traces (session_id, hand_id, actor_seat, trace_json) VALUES (?, ?, ?, ?)",
+                [
+                    (session_id, hand_id, actor_seat, json.dumps(trace))
+                    for actor_seat, trace in decision_traces
+                ],
+            )
+
+    def append_decision_trace(
+        self,
+        *,
+        session_id: str | None,
+        hand_id: str,
+        actor_seat: int,
+        trace: dict[str, Any],
+    ) -> None:
         with self._connect() as conn:
             conn.execute(
-                'INSERT INTO decision_traces (session_id, hand_id, actor_seat, trace_json) VALUES (?, ?, ?, ?)',
+                "INSERT INTO decision_traces (session_id, hand_id, actor_seat, trace_json) VALUES (?, ?, ?, ?)",
                 (session_id, hand_id, actor_seat, json.dumps(trace)),
             )
 
-    def get_decision_traces(self, *, hand_id: str | None = None, session_id: str | None = None) -> list[dict[str, Any]]:
-        query = 'SELECT * FROM decision_traces'
+    def get_decision_traces(
+        self, *, hand_id: str | None = None, session_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        query = "SELECT * FROM decision_traces"
         params: list[Any] = []
         clauses: list[str] = []
         if hand_id is not None:
-            clauses.append('hand_id = ?')
+            clauses.append("hand_id = ?")
             params.append(hand_id)
         if session_id is not None:
-            clauses.append('session_id = ?')
+            clauses.append("session_id = ?")
             params.append(session_id)
         if clauses:
-            query += ' WHERE ' + ' AND '.join(clauses)
-        query += ' ORDER BY id'
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY id"
         with self._connect() as conn:
             rows = conn.execute(query, params).fetchall()
             result = []
             for row in rows:
                 item = dict(row)
-                item['trace'] = json.loads(item.pop('trace_json'))
+                item["trace"] = json.loads(item.pop("trace_json"))
                 result.append(item)
             return result
 
-    def create_session(self, *, session_id: str, session_type: str, config: dict) -> None:
+    def create_session(
+        self, *, session_id: str, session_type: str, config: dict[str, Any]
+    ) -> None:
         with self._connect() as conn:
             conn.execute(
-                'INSERT OR REPLACE INTO sessions (session_id, session_type, config_json, summary_json, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)',
+                "INSERT OR REPLACE INTO sessions (session_id, session_type, config_json, summary_json, updated_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
                 (session_id, session_type, json.dumps(config), None),
             )
 
-    def update_session_summary(self, *, session_id: str, summary: dict) -> None:
+    def delete_session_data(self, *, session_id: str) -> None:
+        with self._connect() as conn:
+            hand_rows = conn.execute(
+                "SELECT hand_id FROM hands WHERE session_id = ?", (session_id,)
+            ).fetchall()
+            hand_ids = [str(row["hand_id"]) for row in hand_rows]
+            for hand_id in hand_ids:
+                conn.execute("DELETE FROM action_log WHERE hand_id = ?", (hand_id,))
+                conn.execute("DELETE FROM snapshots WHERE hand_id = ?", (hand_id,))
+                conn.execute(
+                    "DELETE FROM decision_traces WHERE hand_id = ?", (hand_id,)
+                )
+                conn.execute("DELETE FROM hands WHERE hand_id = ?", (hand_id,))
+            conn.execute(
+                "DELETE FROM decision_traces WHERE session_id = ?", (session_id,)
+            )
+            conn.execute("DELETE FROM sessions WHERE session_id = ?", (session_id,))
+
+    def update_session_summary(
+        self, *, session_id: str, summary: dict[str, Any]
+    ) -> None:
         with self._connect() as conn:
             conn.execute(
-                'UPDATE sessions SET summary_json = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ?',
+                "UPDATE sessions SET summary_json = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ?",
                 (json.dumps(summary), session_id),
             )
 
     def get_session(self, session_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:
-            row = conn.execute('SELECT * FROM sessions WHERE session_id = ?', (session_id,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM sessions WHERE session_id = ?", (session_id,)
+            ).fetchone()
             if row is None:
                 return None
             item = dict(row)
-            item['config'] = json.loads(item.pop('config_json'))
-            item['summary'] = json.loads(item.pop('summary_json')) if item.get('summary_json') else None
-            item.pop('updated_at', None)
+            item["config"] = json.loads(item.pop("config_json"))
+            item["summary"] = (
+                json.loads(item.pop("summary_json"))
+                if item.get("summary_json")
+                else None
+            )
+            item.pop("updated_at", None)
             return item
 
     def get_hand(self, hand_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:
-            row = conn.execute('SELECT * FROM hands WHERE hand_id = ?', (hand_id,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM hands WHERE hand_id = ?", (hand_id,)
+            ).fetchone()
             if row is None:
                 return None
             return {
-                'hand_id': row['hand_id'],
-                'session_id': row['session_id'],
-                'button_seat': row['button_seat'],
-                'stacks': tuple(json.loads(row['stacks_json'])),
-                'seed': row['seed'],
-                'deck_prefix': json.loads(row['deck_prefix_json']),
+                "hand_id": row["hand_id"],
+                "session_id": row["session_id"],
+                "button_seat": row["button_seat"],
+                "stacks": tuple(json.loads(row["stacks_json"])),
+                "seed": row["seed"],
+                "deck_prefix": json.loads(row["deck_prefix_json"]),
             }
 
     def get_hands_for_session(self, session_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:
-            rows = conn.execute('SELECT * FROM hands WHERE session_id = ? ORDER BY created_at, hand_id', (session_id,)).fetchall()
+            rows = conn.execute(
+                "SELECT * FROM hands WHERE session_id = ? ORDER BY created_at, hand_id",
+                (session_id,),
+            ).fetchall()
             result = []
             for row in rows:
-                result.append({
-                    'hand_id': row['hand_id'],
-                    'session_id': row['session_id'],
-                    'button_seat': row['button_seat'],
-                    'stacks': tuple(json.loads(row['stacks_json'])),
-                    'seed': row['seed'],
-                    'deck_prefix': json.loads(row['deck_prefix_json']),
-                })
+                result.append(
+                    {
+                        "hand_id": row["hand_id"],
+                        "session_id": row["session_id"],
+                        "button_seat": row["button_seat"],
+                        "stacks": tuple(json.loads(row["stacks_json"])),
+                        "seed": row["seed"],
+                        "deck_prefix": json.loads(row["deck_prefix_json"]),
+                    }
+                )
             return result
 
     def get_actions(self, hand_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:
-            rows = conn.execute('SELECT * FROM action_log WHERE hand_id = ? ORDER BY action_order', (hand_id,)).fetchall()
+            rows = conn.execute(
+                "SELECT * FROM action_log WHERE hand_id = ? ORDER BY action_order",
+                (hand_id,),
+            ).fetchall()
             return [dict(row) for row in rows]
 
     def get_snapshots(self, hand_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:
-            rows = conn.execute('SELECT * FROM snapshots WHERE hand_id = ? ORDER BY snapshot_order', (hand_id,)).fetchall()
+            rows = conn.execute(
+                "SELECT * FROM snapshots WHERE hand_id = ? ORDER BY snapshot_order",
+                (hand_id,),
+            ).fetchall()
             result = []
             for row in rows:
                 item = dict(row)
-                item['snapshot'] = json.loads(item.pop('snapshot_json'))
+                item["snapshot"] = json.loads(item.pop("snapshot_json"))
                 result.append(item)
             return result
 

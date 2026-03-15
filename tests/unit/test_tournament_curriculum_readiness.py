@@ -34,4 +34,30 @@ def test_tournament_curriculum_and_readiness(tmp_path) -> None:
     (dset / 'manifest.json').write_text('{}', encoding='utf-8')
     readiness = ReadinessService(base_dir=str(tmp_path), dataset_dir='var/datasets', model_dir='models').snapshot()
     assert readiness['docs_ready'] is True
-    assert readiness['production_candidate'] is True
+    assert readiness['asset_readiness'] is True
+    assert readiness['operational_readiness'] is False
+    assert readiness['production_candidate'] is False
+    assert readiness['production_candidate'] == readiness['operational_readiness']
+
+
+def test_readiness_snapshot_exposes_operational_blockers_and_deprecations(tmp_path) -> None:
+    (tmp_path / 'docs').mkdir()
+    (tmp_path / 'tests').mkdir()
+    (tmp_path / 'Dockerfile').write_text('FROM scratch', encoding='utf-8')
+    dset = tmp_path / 'var' / 'datasets' / 'd1'
+    dset.mkdir(parents=True, exist_ok=True)
+    (dset / 'manifest.json').write_text('{}', encoding='utf-8')
+    model_dir = tmp_path / 'models'
+    model_dir.mkdir(parents=True, exist_ok=True)
+    (model_dir / 'model.json').write_text('{}', encoding='utf-8')
+    solver_dir = tmp_path / 'var' / 'external_solver'
+    solver_dir.mkdir(parents=True, exist_ok=True)
+    (solver_dir / 'sample_solver_v1.json').write_text('{}', encoding='utf-8')
+
+    readiness = ReadinessService(base_dir=str(tmp_path), dataset_dir='var/datasets', model_dir='models').snapshot()
+    assert readiness['asset_readiness'] is True
+    assert readiness['operational_readiness'] is False
+    assert readiness['production_candidate'] == readiness['operational_readiness']
+    assert readiness['operational_blockers']
+    assert any('sample/mock local mode' in blocker for blocker in readiness['operational_blockers'])
+    assert any('production_candidate is deprecated' in item for item in readiness['deprecations'])

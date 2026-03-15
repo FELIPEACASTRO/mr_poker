@@ -13,6 +13,8 @@ htmlcov/
 coverage.xml
 pytest.xml
 var/*.db
+var/*.db-shm
+var/*.db-wal
 var/reports/*.json
 var/batches/*.json
 var/regression/*.json
@@ -22,3 +24,6 @@ var/datasets/**/*.json
 !var/**/.gitkeep
 data/local_runs/
 data/checkpoints/
+apps/web_ui/*.tsbuildinfo
+apps/web_ui/vite.config.js
+apps/web_ui/vite.config.d.ts
