@@ -1546,8 +1546,11 @@ aplicáveis ao MR_POKER.
 - **Autores:** Sokota, Farina, Wu, Hu, Brown (Meta/CMU)
 - **Achado:** Alternativa a subgame solving baseada em mirror descent.
   2 ordens de magnitude mais rápido que busca baseada em informação pública.
-- **Aplicação MR_POKER:** Substituir subgame solving por update-equivalence
-  para decision-time planning. Escalável para jogos com muita informação privada.
+- **Aplicação MR_POKER:** ✅ IMPLEMENTADO — `packages/cfr_agent/update_equiv.py`
+  - `MirrorDescentRefiner`: OMD com entropy regularization para refinar blueprint
+  - `DecisionTimePlanner`: orquestra refinamento em tempo real (O(|A|) por passo)
+  - `GradientEstimator`: estima gradientes via rollouts ou action values
+  - 26 testes em `tests/unit/test_update_equiv.py`
 
 #### Q.1.8 PokerGPT — LLM Solver para Multi-Player (Jan 2024)
 - **Paper:** [PokerGPT](https://hf.co/papers/2401.06781)
@@ -1685,8 +1688,8 @@ aplicáveis ao MR_POKER.
 | # | Recurso | Impacto | Esforço | Prioridade |
 |---|---------|---------|---------|------------|
 | 1 | **VAD-CFR** | +2-5x convergência CFR | MÉDIO | ✅ IMPLEMENTADO |
-| 2 | **PokerBench Dataset** | Calibração + validação | BAIXO | 🔴 CRÍTICO |
-| 3 | **Update-Equivalence** | Decision-time planning 100x mais rápido | ALTO | 🟡 ALTO |
+| 2 | **PokerBench Dataset** | Calibração + validação | BAIXO | ✅ IMPLEMENTADO |
+| 3 | **Update-Equivalence** | Decision-time planning 100x mais rápido | ALTO | ✅ IMPLEMENTADO |
 | 4 | **NeuPL** | Multi-policy em 1 rede | ALTO | 🟡 ALTO |
 | 5 | **MBOM** | Opponent modeling recursivo | MÉDIO | 🟡 ALTO |
 | 6 | **NfgTransformer** | Deep CFR equivariante | ALTO | 🟢 MÉDIO |
