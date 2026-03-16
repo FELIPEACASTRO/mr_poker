@@ -48,13 +48,13 @@ class Particle:
 
 # Archetype parameter priors (mean vpip, pfr, aggression)
 ARCHETYPE_PARAMS: dict[str, tuple[float, float, float]] = {
-    "nit": (0.12, 0.10, 1.5),
-    "rock": (0.10, 0.08, 1.0),
-    "tag": (0.22, 0.18, 2.8),
-    "lag": (0.35, 0.25, 3.5),
-    "maniac": (0.55, 0.35, 4.5),
-    "fish": (0.45, 0.10, 1.2),
-    "whale": (0.60, 0.08, 0.8),
+    "nit": (0.16, 0.10, 1.5),
+    "rock": (0.14, 0.08, 1.0),
+    "tag": (0.24, 0.20, 3.0),
+    "lag": (0.36, 0.28, 3.8),
+    "maniac": (0.55, 0.40, 5.5),
+    "fish": (0.40, 0.12, 1.0),
+    "whale": (0.65, 0.06, 0.5),
     "unknown": (0.30, 0.20, 2.0),
 }
 
@@ -81,28 +81,34 @@ def _action_likelihood(
 ) -> float:
     """P(action | opponent_params).
 
-    Simple generative model based on opponent parameters.
+    Generative model with Laplace smoothing to prevent particle
+    collapse from rare-but-possible actions.
     """
     agg_norm = aggression / (1.0 + aggression)  # normalized to [0, 1)
+    _FLOOR = 0.05  # minimum probability for any action
 
     if street == "preflop":
         if action in (ActionType.RAISE, ActionType.ALL_IN):
-            return pfr * 0.8 + agg_norm * 0.2
-        if action == ActionType.CALL:
-            return max(0.01, vpip - pfr)
-        if action == ActionType.FOLD:
-            return max(0.01, 1.0 - vpip)
-        return 0.1  # CHECK / BET
+            raw = pfr * 0.7 + agg_norm * 0.3
+        elif action == ActionType.CALL:
+            raw = max(0.08, vpip - pfr) + 0.05 * (1 - agg_norm)
+        elif action == ActionType.FOLD:
+            raw = max(0.05, 1.0 - vpip)
+        else:
+            raw = 0.1  # CHECK / BET (rare preflop)
     else:
         if action in (ActionType.BET, ActionType.RAISE, ActionType.ALL_IN):
-            return agg_norm * 0.7 + 0.1
-        if action == ActionType.CALL:
-            return 0.3 * (1 - agg_norm) + 0.1
-        if action == ActionType.FOLD:
-            return max(0.01, 0.5 * (1.0 - vpip))
-        if action == ActionType.CHECK:
-            return max(0.01, 0.4 * (1.0 - agg_norm))
-        return 0.1
+            raw = agg_norm * 0.6 + 0.15
+        elif action == ActionType.CALL:
+            raw = 0.25 * (1 - agg_norm) + 0.15
+        elif action == ActionType.FOLD:
+            raw = max(0.05, 0.4 * (1.0 - vpip))
+        elif action == ActionType.CHECK:
+            raw = max(0.05, 0.35 * (1.0 - agg_norm))
+        else:
+            raw = 0.1
+
+    return max(_FLOOR, raw)
 
 
 class ParticleFilterOpponentModel:
@@ -163,11 +169,13 @@ class ParticleFilterOpponentModel:
         """Update particle weights given an observed action.
 
         Steps:
-        1. Transition: evolve particles (style drift)
+        1. Transition: evolve particles (style drift) — every 10 obs
         2. Weight: reweight by action likelihood
         3. Resample: if effective sample size too low
         """
-        self._transition()
+        # Only transition periodically to avoid destroying signal
+        if self._observations > 0 and self._observations % 10 == 0:
+            self._transition()
         self._reweight(action, street)
         self._observations += 1
 
