@@ -26,6 +26,8 @@ from packages.cfr_agent.embedding_cfr import EmbeddingCFRTrainer
 from packages.cfr_agent.hdcfr import HDCFRTrainer, HierarchicalPolicy, Skill
 from packages.cfr_agent.qre import QRESolver, QREState
 from packages.cfr_agent.vr_deep_dcfr import VRDeepDCFRTrainer
+from packages.cfr_agent.exploitability import ExploitabilityCalculator
+from packages.cfr_agent.nfsp import NFSPAgent
 
 __all__ = [
     "CFRAgent",
@@ -45,4 +47,6 @@ __all__ = [
     "QRESolver",
     "QREState",
     "VRDeepDCFRTrainer",
+    "ExploitabilityCalculator",
+    "NFSPAgent",
 ]

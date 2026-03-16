@@ -3,7 +3,8 @@
 Goes beyond archetype classification to predict the *specific* next action
 an opponent will take, given their full action history.  Uses a sliding-window
 feature encoder and a simple neural network to produce calibrated action
-probabilities.
+probabilities.  Optionally uses a GRU cell for sequential encoding of action
+history, providing better temporal modelling than the flat sliding window.
 
 This enables more precise exploitation: knowing an opponent will fold 70%
 of the time in a spot allows targeted bluffing, rather than relying on
@@ -21,7 +22,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from packages.common.types import ActionType
-from packages.cfr_agent.deep_cfr import SimpleNN
+from packages.cfr_agent.deep_cfr import GRUCell, SimpleNN
 
 
 # Action encoding indices
@@ -75,11 +76,21 @@ def encode_event(event: ActionEvent) -> list[float]:
     return vec
 
 
+_EVENT_DIM = 10  # dimension of encode_event output
+_CONTEXT_DIM = 4  # pot_odds, stack_depth, history_len, street
+
+
 class BehaviorPredictor:
     """Predicts the next action an opponent will take.
 
     Maintains a sliding window of recent actions and uses a neural
     network to predict action probabilities for the next decision.
+
+    When *use_gru=True* (the default), action history is encoded
+    sequentially through a GRU cell whose final hidden state is
+    concatenated with context features before being fed to the output
+    network.  When *use_gru=False*, the legacy flat sliding-window
+    encoding is used instead.
     """
 
     def __init__(
@@ -88,14 +99,31 @@ class BehaviorPredictor:
         hidden_dim: int = 32,
         learning_rate: float = 0.01,
         seed: int = 42,
+        use_gru: bool = True,
+        gru_hidden_dim: int = 24,
+        lr_decay: float = 0.999,
+        min_lr: float = 0.0001,
+        batch_size: int = 64,
     ) -> None:
         self.window_size = window_size
         self.rng = random.Random(seed)
-
-        # Input: window_size * 10 features per event + 4 context features
-        self.input_dim = window_size * 10 + 4
         self.hidden_dim = hidden_dim
         self.output_dim = NUM_ACTION_TYPES
+        self.use_gru = use_gru
+        self.gru_hidden_dim = gru_hidden_dim
+        self.lr_decay = lr_decay
+        self.min_lr = min_lr
+        self.batch_size = batch_size
+
+        if use_gru:
+            # GRU processes 10-dim encoded events sequentially.
+            # Output network input: gru_hidden_dim + 4 context features
+            self.gru = GRUCell(_EVENT_DIM, gru_hidden_dim, seed=seed)
+            self.input_dim = gru_hidden_dim + _CONTEXT_DIM
+        else:
+            self.gru = None  # type: ignore[assignment]
+            # Legacy: window_size * 10 features per event + 4 context features
+            self.input_dim = window_size * _EVENT_DIM + _CONTEXT_DIM
 
         # Neural network: input -> hidden -> output
         self.network = SimpleNN(
@@ -107,10 +135,79 @@ class BehaviorPredictor:
         # History buffer
         self.history: list[ActionEvent] = []
 
-        # Training data
+        # Training data — stored as *raw history snapshots* so that GRU
+        # can re-encode them each epoch (important while GRU weights are
+        # not trained here).  For the flat path we store pre-built
+        # feature vectors for speed.
         self._train_inputs: list[list[float]] = []
         self._train_targets: list[list[float]] = []
         self._max_train_size = 20000
+
+    # ------------------------------------------------------------------
+    # Feature building
+    # ------------------------------------------------------------------
+
+    def _build_features(
+        self, history: list[ActionEvent], context: dict[str, float] | None = None
+    ) -> list[float]:
+        """Build feature vector from action history.
+
+        When *use_gru* is True, encodes the history sequentially through
+        the GRU and concatenates the final hidden state with context.
+        Otherwise falls back to the flat sliding-window encoding.
+        """
+        if self.use_gru and self.gru is not None:
+            return self._build_features_gru(history, context)
+        return self._build_features_window(history, context)
+
+    def _build_features_gru(
+        self, history: list[ActionEvent], context: dict[str, float] | None = None
+    ) -> list[float]:
+        """GRU-based feature encoding."""
+        # Encode each event as a 10-dim vector
+        encoded = [encode_event(e) for e in history]
+        if encoded:
+            h = self.gru.forward_sequence(encoded)
+        else:
+            h = [0.0] * self.gru_hidden_dim
+
+        # Context features (4 dims)
+        ctx = context or {}
+        features = list(h)
+        features.append(ctx.get("pot_odds", 0.0))
+        features.append(ctx.get("stack_depth", 0.5))
+        features.append(min(len(history) / 100.0, 1.0))
+        features.append(ctx.get("street", 0.0))
+        return features
+
+    def _build_features_window(
+        self, history: list[ActionEvent], context: dict[str, float] | None = None
+    ) -> list[float]:
+        """Legacy sliding-window feature encoding."""
+        # Get last window_size events
+        window = history[-self.window_size:]
+
+        # Encode and flatten
+        features: list[float] = []
+        for event in window:
+            features.extend(encode_event(event))
+
+        # Pad if window is short
+        pad_needed = self.window_size * _EVENT_DIM - len(features)
+        features = [0.0] * pad_needed + features
+
+        # Context features (4 dims)
+        ctx = context or {}
+        features.append(ctx.get("pot_odds", 0.0))
+        features.append(ctx.get("stack_depth", 0.5))
+        features.append(min(len(history) / 100.0, 1.0))  # history length
+        features.append(ctx.get("street", 0.0))
+
+        return features
+
+    # ------------------------------------------------------------------
+    # Observation
+    # ------------------------------------------------------------------
 
     def observe(self, event: ActionEvent) -> None:
         """Record an observed action."""
@@ -131,34 +228,9 @@ class BehaviorPredictor:
                 self._train_inputs = self._train_inputs[-self._max_train_size:]
                 self._train_targets = self._train_targets[-self._max_train_size:]
 
-    def _build_features(
-        self, history: list[ActionEvent], context: dict[str, float] | None = None
-    ) -> list[float]:
-        """Build feature vector from action history.
-
-        Takes the last `window_size` events, pads with zeros if shorter,
-        and appends context features.
-        """
-        # Get last window_size events
-        window = history[-self.window_size:]
-
-        # Encode and flatten
-        features: list[float] = []
-        for event in window:
-            features.extend(encode_event(event))
-
-        # Pad if window is short
-        pad_needed = self.window_size * 10 - len(features)
-        features = [0.0] * pad_needed + features
-
-        # Context features (4 dims)
-        ctx = context or {}
-        features.append(ctx.get("pot_odds", 0.0))
-        features.append(ctx.get("stack_depth", 0.5))
-        features.append(min(len(history) / 100.0, 1.0))  # history length
-        features.append(ctx.get("street", 0.0))
-
-        return features
+    # ------------------------------------------------------------------
+    # Prediction
+    # ------------------------------------------------------------------
 
     def predict(
         self, context: dict[str, float] | None = None
@@ -185,10 +257,17 @@ class BehaviorPredictor:
 
         return probs
 
+    # ------------------------------------------------------------------
+    # Training
+    # ------------------------------------------------------------------
+
     def train_step(self, epochs: int = 1) -> float:
         """Train the network on accumulated observations.
 
         Uses proper softmax cross-entropy gradients for classification.
+        Supports mini-batch training (controlled by *batch_size*) and
+        applies learning-rate decay after each epoch.
+
         Returns average loss.
         """
         if len(self._train_inputs) < 2:
@@ -197,63 +276,77 @@ class BehaviorPredictor:
         total_loss = 0.0
         n = 0
         net = self.network
+        num_samples = len(self._train_inputs)
 
-        for _ in range(epochs):
-            indices = list(range(len(self._train_inputs)))
+        for _epoch in range(epochs):
+            # Build index list for this epoch
+            indices = list(range(num_samples))
             self.rng.shuffle(indices)
 
-            for i in indices:
-                x = self._train_inputs[i]
-                target = self._train_targets[i]
+            # Mini-batch iteration
+            bs = min(self.batch_size, num_samples)
+            for batch_start in range(0, num_samples, bs):
+                batch_indices = indices[batch_start:batch_start + bs]
 
-                # Forward pass (replicate SimpleNN internals for proper gradients)
-                hidden_raw = []
-                hidden = []
-                for h in range(len(net.w1)):
-                    val = net.b1[h] + sum(net.w1[h][j] * x[j] for j in range(len(x)))
-                    hidden_raw.append(val)
-                    hidden.append(max(0.0, val))
+                for i in batch_indices:
+                    x = self._train_inputs[i]
+                    target = self._train_targets[i]
 
-                logits = []
-                for o in range(len(net.w2)):
-                    val = net.b2[o] + sum(net.w2[o][j] * hidden[j] for j in range(len(hidden)))
-                    logits.append(val)
+                    # Forward pass (replicate SimpleNN internals for proper gradients)
+                    hidden_raw = []
+                    hidden = []
+                    for h in range(len(net.w1)):
+                        val = net.b1[h] + sum(net.w1[h][j] * x[j] for j in range(len(x)))
+                        hidden_raw.append(val)
+                        hidden.append(max(0.0, val))
 
-                # Softmax
-                max_logit = max(logits) if logits else 0.0
-                exp_vals = [math.exp(l - max_logit) for l in logits]
-                total_exp = sum(exp_vals)
-                probs = [e / total_exp for e in exp_vals]
+                    logits = []
+                    for o in range(len(net.w2)):
+                        val = net.b2[o] + sum(net.w2[o][j] * hidden[j] for j in range(len(hidden)))
+                        logits.append(val)
 
-                # Cross-entropy loss
-                loss = -sum(
-                    t * math.log(max(p, 1e-10))
-                    for t, p in zip(target, probs)
-                )
-                total_loss += loss
-                n += 1
+                    # Softmax
+                    max_logit = max(logits) if logits else 0.0
+                    exp_vals = [math.exp(l - max_logit) for l in logits]
+                    total_exp = sum(exp_vals)
+                    probs = [e / total_exp for e in exp_vals]
 
-                # Gradient of softmax cross-entropy: d_logit = probs - target
-                d_output = [probs[o] - target[o] for o in range(len(logits))]
+                    # Cross-entropy loss
+                    loss = -sum(
+                        t * math.log(max(p, 1e-10))
+                        for t, p in zip(target, probs)
+                    )
+                    total_loss += loss
+                    n += 1
 
-                # Backward: output layer
-                d_hidden = [0.0] * len(hidden)
-                for o in range(len(net.w2)):
-                    for j in range(len(hidden)):
-                        d_hidden[j] += d_output[o] * net.w2[o][j]
-                        net.w2[o][j] -= self.lr * d_output[o] * hidden[j]
-                    net.b2[o] -= self.lr * d_output[o]
+                    # Gradient of softmax cross-entropy: d_logit = probs - target
+                    d_output = [probs[o] - target[o] for o in range(len(logits))]
 
-                # Backward: hidden layer (ReLU derivative)
-                for h in range(len(net.w1)):
-                    if hidden_raw[h] <= 0:
-                        continue
-                    grad = d_hidden[h]
-                    for j in range(len(x)):
-                        net.w1[h][j] -= self.lr * grad * x[j]
-                    net.b1[h] -= self.lr * grad
+                    # Backward: output layer
+                    d_hidden = [0.0] * len(hidden)
+                    for o in range(len(net.w2)):
+                        for j in range(len(hidden)):
+                            d_hidden[j] += d_output[o] * net.w2[o][j]
+                            net.w2[o][j] -= self.lr * d_output[o] * hidden[j]
+                        net.b2[o] -= self.lr * d_output[o]
+
+                    # Backward: hidden layer (ReLU derivative)
+                    for h in range(len(net.w1)):
+                        if hidden_raw[h] <= 0:
+                            continue
+                        grad = d_hidden[h]
+                        for j in range(len(x)):
+                            net.w1[h][j] -= self.lr * grad * x[j]
+                        net.b1[h] -= self.lr * grad
+
+            # Learning rate decay after each epoch
+            self.lr = max(self.min_lr, self.lr * self.lr_decay)
 
         return total_loss / max(n, 1)
+
+    # ------------------------------------------------------------------
+    # Convenience helpers
+    # ------------------------------------------------------------------
 
     def predict_specific_action(
         self,

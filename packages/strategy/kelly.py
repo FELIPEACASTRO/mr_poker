@@ -153,3 +153,112 @@ class BankrollManager:
         if buyins_required <= 0:
             return 0.0
         return self.bankroll / buyins_required
+
+
+class KellyCriterion:
+    """Bankroll management via Kelly Criterion.
+
+    Provides optimal bet sizing, play/no-play decisions, and
+    risk-of-ruin estimates using the Kelly Criterion framework.
+
+    Uses a fractional Kelly approach (default quarter-Kelly) for
+    conservative bankroll management suitable for poker.
+    """
+
+    def __init__(self, bankroll: float, fraction: float = 0.25) -> None:
+        """Initialize Kelly Criterion calculator.
+
+        Args:
+            bankroll: Current bankroll size.
+            fraction: Kelly fraction (0.25 = quarter Kelly, conservative).
+        """
+        self.bankroll = bankroll
+        self.fraction = fraction
+
+    def optimal_bet(self, win_prob: float, pot_odds: float) -> float:
+        """Calculate optimal bet size as fraction of bankroll.
+
+        Kelly formula: f* = (bp - q) / b
+        where b = pot odds, p = win prob, q = 1-p
+
+        Args:
+            win_prob: Probability of winning (0 to 1).
+            pot_odds: Net payout odds (pot / cost to call).
+
+        Returns:
+            Optimal bet amount (fraction of bankroll * Kelly fraction).
+        """
+        if win_prob <= 0 or win_prob >= 1 or pot_odds <= 0:
+            return 0.0
+
+        p = win_prob
+        q = 1.0 - p
+        b = pot_odds
+
+        # Kelly formula: f* = (bp - q) / b
+        kelly_f = (b * p - q) / b
+
+        if kelly_f <= 0:
+            return 0.0
+
+        # Apply fractional Kelly and bankroll
+        bet = self.bankroll * kelly_f * self.fraction
+        return max(0.0, bet)
+
+    def should_play(self, win_prob: float, pot_odds: float) -> bool:
+        """Returns True if the hand has positive expected Kelly growth.
+
+        A hand is worth playing if the Kelly fraction is positive,
+        meaning the expected value is positive given the odds.
+        """
+        if win_prob <= 0 or win_prob >= 1 or pot_odds <= 0:
+            return False
+
+        p = win_prob
+        q = 1.0 - p
+        b = pot_odds
+
+        kelly_f = (b * p - q) / b
+        return kelly_f > 0
+
+    def update_bankroll(self, result: float) -> None:
+        """Update bankroll after a hand.
+
+        Args:
+            result: Net profit/loss from the hand.
+        """
+        self.bankroll += result
+
+    def risk_of_ruin(self, target_multiple: float = 2.0) -> float:
+        """Estimate probability of going broke before reaching target.
+
+        Uses the simplified risk-of-ruin formula:
+            RoR = (1 - edge)^(bankroll / unit) approximately
+            RoR = ((1-f)/f)^n for Kelly betting
+
+        For fractional Kelly with fraction f applied to edge e:
+            RoR ~ (q/p)^(B/unit) where B = bankroll
+
+        Args:
+            target_multiple: Target bankroll multiple (e.g., 2.0 = double).
+
+        Returns:
+            Estimated probability of ruin (0.0 to 1.0).
+        """
+        if self.bankroll <= 0:
+            return 1.0
+        if target_multiple <= 1.0:
+            return 0.0
+
+        # For fractional Kelly, risk of ruin before reaching target:
+        # RoR = 1 - (1 - (1/target)^(2*edge_factor))
+        # Simplified: using Kelly fraction as proxy for edge
+        edge_factor = self.fraction  # conservative proxy
+
+        if edge_factor <= 0:
+            return 1.0
+
+        # Classic formula approximation
+        exponent = 2.0 * edge_factor * math.log(target_multiple)
+        ror = math.exp(-exponent * self.bankroll / 100.0)
+        return min(1.0, max(0.0, ror))

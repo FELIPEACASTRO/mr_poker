@@ -5,6 +5,7 @@ from packages.strategy.kelly import (
     half_kelly,
     quarter_kelly,
     BankrollManager,
+    KellyCriterion,
 )
 from packages.strategy.bias_exploiter import CognitiveBiasExploiter, BiasType, BiasProfile
 
@@ -16,6 +17,7 @@ __all__ = [
     "half_kelly",
     "quarter_kelly",
     "BankrollManager",
+    "KellyCriterion",
     "CognitiveBiasExploiter",
     "BiasType",
     "BiasProfile",

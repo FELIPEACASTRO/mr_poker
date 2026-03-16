@@ -50,6 +50,9 @@ class CFRState:
     dcfr_beta: float = 0.5
     dcfr_gamma: float = 2.0
 
+    # Linear CFR: weight iteration t by t (instead of uniform)
+    linear_cfr: bool = True
+
     def average_strategy(self, info_set: str, legal: set[ActionType]) -> ActionDistribution:
         """Get the time-averaged strategy (the converged Nash approximation)."""
         if info_set not in self.strategy_sum:
@@ -98,6 +101,9 @@ class CFRState:
         if info_set not in self.strategy_sum:
             self.strategy_sum[info_set] = {}
 
+        # Linear CFR: weight strategy contribution by iteration number
+        weight = max(1, self.iterations) if self.linear_cfr else 1
+
         for action, utility in action_utilities.items():
             regret = utility - ev
             key = action.value
@@ -106,7 +112,7 @@ class CFRState:
             )
             prob = strategy.probabilities.get(action, 0.0)
             self.strategy_sum[info_set][key] = (
-                self.strategy_sum[info_set].get(key, 0.0) + prob
+                self.strategy_sum[info_set].get(key, 0.0) + prob * weight
             )
 
     def apply_dcfr_discount(self) -> None:
@@ -148,6 +154,7 @@ class CFRState:
             "dcfr_alpha": self.dcfr_alpha,
             "dcfr_beta": self.dcfr_beta,
             "dcfr_gamma": self.dcfr_gamma,
+            "linear_cfr": self.linear_cfr,
         }
         Path(path).write_text(json.dumps(data))
 
@@ -162,6 +169,7 @@ class CFRState:
             dcfr_alpha=data.get("dcfr_alpha", 1.5),
             dcfr_beta=data.get("dcfr_beta", 0.5),
             dcfr_gamma=data.get("dcfr_gamma", 2.0),
+            linear_cfr=data.get("linear_cfr", True),
         )
 
 
@@ -207,12 +215,18 @@ class CFRTrainer:
         starting_stack: int = 100,
         seed: int = 42,
         mode: str = "dcfr",
+        warm_start_strategy: dict[str, dict[str, float]] | None = None,
     ) -> None:
         self.engine = GameEngine(small_blind=small_blind, big_blind=big_blind)
         self.starting_stack = starting_stack
         self.rng = random.Random(seed)
         self.cfr_state = CFRState()
         self.mode = mode
+
+        # Warm start: initialize strategy_sum from provided strategy
+        if warm_start_strategy is not None:
+            for info_set, action_probs in warm_start_strategy.items():
+                self.cfr_state.strategy_sum[info_set] = dict(action_probs)
 
     def train(self, iterations: int = 10000) -> CFRState:
         """Run CFR self-play for the given number of iterations."""
@@ -270,10 +284,17 @@ class CFRTrainer:
         action_utilities: dict[ActionType, float] = {}
         node_utility = 0.0
 
+        # Regret-based pruning threshold
+        prune_threshold = -300.0 * math.sqrt(max(1, self.cfr_state.iterations))
+        regrets = self.cfr_state.cumulative_regret.get(info_set, {})
+
         for action in legal:
             prob = strategy.probabilities.get(action, 0.0)
             if prob <= 0 and self.cfr_state.iterations > 0:
-                continue
+                # Also check regret-based pruning
+                cum_regret = regrets.get(action.value, 0.0)
+                if cum_regret < prune_threshold:
+                    continue
 
             child_runtime = self._clone_and_act(runtime, action)
             if child_runtime is None:
@@ -323,14 +344,32 @@ class CFRTrainer:
                 return 0.0
             return self._mccfr_external(child, traverser)
 
-        # Traverser node: explore ALL actions
+        # Traverser node: explore ALL actions (with regret-based pruning)
         action_utilities: dict[ActionType, float] = {}
+        prune_threshold = -300.0 * math.sqrt(max(1, self.cfr_state.iterations))
+        regrets = self.cfr_state.cumulative_regret.get(info_set, {})
+
         for action in legal:
+            # Regret-based pruning: skip actions with sufficiently negative regret
+            if self.cfr_state.iterations > 0:
+                cum_regret = regrets.get(action.value, 0.0)
+                if cum_regret < prune_threshold:
+                    continue
+
             child = self._clone_and_act(runtime, action)
             if child is None:
                 action_utilities[action] = 0.0
                 continue
             action_utilities[action] = self._mccfr_external(child, traverser)
+
+        # If all actions were pruned, fall back to exploring all
+        if not action_utilities:
+            for action in legal:
+                child = self._clone_and_act(runtime, action)
+                if child is None:
+                    action_utilities[action] = 0.0
+                    continue
+                action_utilities[action] = self._mccfr_external(child, traverser)
 
         # Compute node EV
         node_utility = sum(

@@ -10,6 +10,7 @@ from .positional_profile import PositionalProfiler
 from .street_patterns import StreetPatternTracker
 from .meta_game import MetaGameTracker, AdaptationState
 from .fatigue_model import FatigueModel, FatigueLevel
+from .style_embedding import StyleEmbedder
 
 __all__ = [
     "build_opponent_profile",
@@ -31,4 +32,5 @@ __all__ = [
     "AdaptationState",
     "FatigueModel",
     "FatigueLevel",
+    "StyleEmbedder",
 ]

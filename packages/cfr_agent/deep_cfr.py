@@ -138,6 +138,75 @@ def extract_features(state: Any, seat: int) -> InfoSetFeatures:
     )
 
 
+class GRUCell:
+    """Gated Recurrent Unit — pure Python implementation.
+
+    Implements the standard GRU equations without external dependencies:
+        z = sigmoid(Wz @ [h_prev, x] + bz)   # update gate
+        r = sigmoid(Wr @ [h_prev, x] + br)   # reset gate
+        h_tilde = tanh(Wh @ [r*h_prev, x] + bh)  # candidate
+        h_new = (1-z)*h_prev + z*h_tilde
+    """
+
+    def __init__(self, input_dim: int, hidden_dim: int, seed: int = 42) -> None:
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        rng = random.Random(seed)
+        concat_dim = hidden_dim + input_dim
+        scale = math.sqrt(2.0 / concat_dim)
+
+        # Update gate
+        self.Wz = [[rng.gauss(0, scale) for _ in range(concat_dim)] for _ in range(hidden_dim)]
+        self.bz = [0.0] * hidden_dim
+        # Reset gate
+        self.Wr = [[rng.gauss(0, scale) for _ in range(concat_dim)] for _ in range(hidden_dim)]
+        self.br = [0.0] * hidden_dim
+        # Candidate
+        self.Wh = [[rng.gauss(0, scale) for _ in range(concat_dim)] for _ in range(hidden_dim)]
+        self.bh = [0.0] * hidden_dim
+
+    @staticmethod
+    def _sigmoid(x: float) -> float:
+        if x >= 0:
+            return 1.0 / (1.0 + math.exp(-x))
+        ex = math.exp(x)
+        return ex / (1.0 + ex)
+
+    @staticmethod
+    def _tanh(x: float) -> float:
+        return math.tanh(x)
+
+    def forward(self, x: list[float], h_prev: list[float] | None = None) -> list[float]:
+        """Run one GRU step. Returns h_new (hidden_dim,)."""
+        hd = self.hidden_dim
+        if h_prev is None:
+            h_prev = [0.0] * hd
+
+        # Concatenate [h_prev, x]
+        concat = h_prev + x
+
+        h_new = [0.0] * hd
+        for i in range(hd):
+            # Update gate
+            z_i = self._sigmoid(self.bz[i] + sum(self.Wz[i][j] * concat[j] for j in range(len(concat))))
+            # Reset gate
+            r_i = self._sigmoid(self.br[i] + sum(self.Wr[i][j] * concat[j] for j in range(len(concat))))
+            # Candidate: use [r*h_prev, x]
+            r_concat = [r_i * h_prev[k] for k in range(hd)] + x
+            h_tilde_i = self._tanh(self.bh[i] + sum(self.Wh[i][j] * r_concat[j] for j in range(len(r_concat))))
+            # Output
+            h_new[i] = (1.0 - z_i) * h_prev[i] + z_i * h_tilde_i
+
+        return h_new
+
+    def forward_sequence(self, xs: list[list[float]], h0: list[float] | None = None) -> list[float]:
+        """Process a sequence of inputs, return final hidden state."""
+        h = h0
+        for x in xs:
+            h = self.forward(x, h)
+        return h if h is not None else [0.0] * self.hidden_dim
+
+
 class SimpleNN:
     """Minimal neural network (no external dependencies).
 
@@ -145,7 +214,7 @@ class SimpleNN:
     This avoids requiring PyTorch/TensorFlow for the core package.
     """
 
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, *, seed: int = 42):
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, *, seed: int = 42, weight_decay: float = 1e-5):
         rng = random.Random(seed)
         scale_h = math.sqrt(2.0 / input_dim)
         scale_o = math.sqrt(2.0 / hidden_dim)
@@ -154,6 +223,7 @@ class SimpleNN:
         self.b1 = [0.0] * hidden_dim
         self.w2 = [[rng.gauss(0, scale_o) for _ in range(hidden_dim)] for _ in range(output_dim)]
         self.b2 = [0.0] * output_dim
+        self.weight_decay = weight_decay
 
     def forward(self, x: list[float]) -> list[float]:
         """Forward pass: input → hidden (ReLU) → output."""
@@ -171,8 +241,10 @@ class SimpleNN:
 
         return output
 
-    def train_step(self, x: list[float], target: list[float], lr: float = 0.001) -> float:
-        """Single SGD step with MSE loss. Returns loss."""
+    def train_step(self, x: list[float], target: list[float], lr: float = 0.001, max_grad_norm: float = 1.0) -> float:
+        """Single SGD step with Huber loss, gradient clipping, and weight decay. Returns loss."""
+        delta = 1.0  # Huber loss delta
+
         # Forward
         hidden = []
         hidden_raw = []
@@ -186,27 +258,74 @@ class SimpleNN:
             val = self.b2[i] + sum(self.w2[i][j] * hidden[j] for j in range(len(hidden)))
             output.append(val)
 
-        # Loss
-        loss = sum((output[i] - target[i]) ** 2 for i in range(len(target))) / len(target)
+        # Huber loss
+        loss = 0.0
+        for i in range(len(target)):
+            error = output[i] - target[i]
+            abs_error = abs(error)
+            if abs_error <= delta:
+                loss += 0.5 * error * error
+            else:
+                loss += delta * (abs_error - 0.5 * delta)
+        loss /= len(target)
 
-        # Backward: output layer
-        d_output = [(output[i] - target[i]) * 2.0 / len(target) for i in range(len(target))]
+        # Backward: Huber gradient for output
+        d_output = []
+        for i in range(len(target)):
+            error = output[i] - target[i]
+            abs_error = abs(error)
+            if abs_error <= delta:
+                d_output.append(error / len(target))
+            else:
+                d_output.append((delta if error > 0 else -delta) / len(target))
+
+        # Compute all gradients first (for gradient clipping)
+        # Gradients for w2, b2
+        grad_w2 = [[d_output[i] * hidden[j] for j in range(len(hidden))] for i in range(len(self.w2))]
+        grad_b2 = [d_output[i] for i in range(len(self.w2))]
 
         d_hidden = [0.0] * len(hidden)
         for i in range(len(self.w2)):
             for j in range(len(hidden)):
                 d_hidden[j] += d_output[i] * self.w2[i][j]
-                self.w2[i][j] -= lr * d_output[i] * hidden[j]
-            self.b2[i] -= lr * d_output[i]
 
-        # Backward: hidden layer (ReLU derivative)
+        # Gradients for w1, b1
+        grad_w1 = [[0.0] * len(x) for _ in range(len(self.w1))]
+        grad_b1 = [0.0] * len(self.w1)
         for i in range(len(self.w1)):
             if hidden_raw[i] <= 0:
                 continue
             grad = d_hidden[i]
             for j in range(len(x)):
-                self.w1[i][j] -= lr * grad * x[j]
-            self.b1[i] -= lr * grad
+                grad_w1[i][j] = grad * x[j]
+            grad_b1[i] = grad
+
+        # Gradient clipping: compute global norm
+        global_norm_sq = 0.0
+        for i in range(len(grad_w2)):
+            for j in range(len(grad_w2[i])):
+                global_norm_sq += grad_w2[i][j] ** 2
+        for v in grad_b2:
+            global_norm_sq += v ** 2
+        for i in range(len(grad_w1)):
+            for j in range(len(grad_w1[i])):
+                global_norm_sq += grad_w1[i][j] ** 2
+        for v in grad_b1:
+            global_norm_sq += v ** 2
+
+        global_norm = math.sqrt(global_norm_sq) if global_norm_sq > 0 else 0.0
+        clip_coef = min(1.0, max_grad_norm / (global_norm + 1e-8))
+
+        # Apply gradients with clipping and weight decay
+        for i in range(len(self.w2)):
+            for j in range(len(hidden)):
+                self.w2[i][j] -= lr * (clip_coef * grad_w2[i][j] + self.weight_decay * self.w2[i][j])
+            self.b2[i] -= lr * clip_coef * grad_b2[i]
+
+        for i in range(len(self.w1)):
+            for j in range(len(x)):
+                self.w1[i][j] -= lr * (clip_coef * grad_w1[i][j] + self.weight_decay * self.w1[i][j])
+            self.b1[i] -= lr * clip_coef * grad_b1[i]
 
         return loss
 
@@ -365,8 +484,9 @@ class DeepCFRTrainer:
     def _get_strategy(
         self, seat: int, feat_vec: list[float], legal: set[ActionType]
     ) -> ActionDistribution:
-        """Get strategy from advantage network via regret matching."""
+        """Get strategy from advantage network via regret matching with legal action masking."""
         raw = self.adv_nets[seat].forward(feat_vec)
+        # Mask illegal actions: only consider legal actions for regret matching
         positive = {}
         for action in legal:
             idx = ACTION_INDEX.get(action)
@@ -385,14 +505,17 @@ class DeepCFRTrainer:
     def get_final_strategy(
         self, feat_vec: list[float], legal: set[ActionType]
     ) -> ActionDistribution:
-        """Get the final average strategy from the strategy network."""
+        """Get the final average strategy from the strategy network with legal action masking."""
         raw = self.strategy_net.forward(feat_vec)
-        # Softmax over legal actions
-        legal_vals = {}
-        for action in legal:
-            idx = ACTION_INDEX.get(action)
-            if idx is not None:
-                legal_vals[action] = raw[idx]
+        # Mask illegal actions by setting their logits to -1e9 before softmax
+        masked = {}
+        for action in ACTION_INDEX:
+            idx = ACTION_INDEX[action]
+            if action in legal:
+                masked[action] = raw[idx]
+            # Illegal actions simply excluded (equivalent to -inf in softmax)
+
+        legal_vals = {a: v for a, v in masked.items() if a in legal}
 
         if not legal_vals:
             n = len(legal) or 1
