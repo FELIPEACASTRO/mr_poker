@@ -28,6 +28,9 @@ from packages.cfr_agent.qre import QRESolver, QREState
 from packages.cfr_agent.vr_deep_dcfr import VRDeepDCFRTrainer
 from packages.cfr_agent.exploitability import ExploitabilityCalculator
 from packages.cfr_agent.nfsp import NFSPAgent
+from packages.cfr_agent.neupl import NeuPLNetwork, NeuPLPopulation, PopulationPolicy
+from packages.cfr_agent.update_equiv import MirrorDescentRefiner, DecisionTimePlanner
+from packages.cfr_agent.nfg_transformer import NfgTransformer, NfgTransformerBlock
 
 __all__ = [
     "CFRAgent",
@@ -49,4 +52,11 @@ __all__ = [
     "VRDeepDCFRTrainer",
     "ExploitabilityCalculator",
     "NFSPAgent",
+    "NeuPLNetwork",
+    "NeuPLPopulation",
+    "PopulationPolicy",
+    "MirrorDescentRefiner",
+    "DecisionTimePlanner",
+    "NfgTransformer",
+    "NfgTransformerBlock",
 ]

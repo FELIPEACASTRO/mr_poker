@@ -1692,10 +1692,10 @@ aplicáveis ao MR_POKER.
 | 3 | **Update-Equivalence** | Decision-time planning 100x mais rápido | ALTO | ✅ IMPLEMENTADO |
 | 4 | **NeuPL** | Multi-policy em 1 rede | ALTO | ✅ IMPLEMENTADO |
 | 5 | **MBOM** | Opponent modeling recursivo | MÉDIO | ✅ IMPLEMENTADO |
-| 6 | **NfgTransformer** | Deep CFR equivariante | ALTO | 🟢 MÉDIO |
-| 7 | **DDM (Response Time)** | Timing tells formal | BAIXO | 🟢 MÉDIO |
-| 8 | **CNN-LSTM timing** | Skill estimation | MÉDIO | 🟢 MÉDIO |
-| 9 | **Nemotron-Personas PGM** | Dados sintéticos de jogadores | MÉDIO | 🟢 MÉDIO |
+| 6 | **NfgTransformer** | Deep CFR equivariante | ALTO | ✅ IMPLEMENTADO |
+| 7 | **DDM (Response Time)** | Timing tells formal | BAIXO | ✅ IMPLEMENTADO |
+| 8 | **CNN-LSTM Skill Estimator** | Skill estimation | MÉDIO | ✅ IMPLEMENTADO |
+| 9 | **Synthetic Player Generator** | Dados sintéticos de jogadores | MÉDIO | ✅ IMPLEMENTADO |
 | 10 | **LLM gambling biases** | Validação de módulos | NENHUM | 🔵 BAIXO |
 
 ### Q.5 — Resumo Executivo
@@ -1715,3 +1715,38 @@ aplicáveis ao MR_POKER.
    calibrar e validar nosso pipeline inteiro.
 3. **Update-Equivalence (Meta/CMU)** — Framework teórico para decision-time
    planning 100x mais eficiente que subgame solving tradicional.
+
+---
+
+## Seção P — Implementações #6-#10
+
+### P.1 NfgTransformer (Item #6)
+- **Arquivo:** `packages/cfr_agent/nfg_transformer.py`
+- **Classe:** `NfgTransformerBlock` (self-attention equivariante sobre ações) + `NfgTransformer` (input projection → N blocos → output head)
+- **Arquitetura:** Per-action embeddings → Multi-head self-attention → Residual + LayerNorm → FFN → predict_values() / predict_strategy()
+- **Testes:** 6 testes em `tests/unit/test_roadmap_q6_q10.py`
+
+### P.2 DDM Timing (Item #7)
+- **Arquivo:** `packages/opponent_model/ddm_timing.py`
+- **Classe:** `DDMEstimator` — Drift Diffusion Model para inferir preferências a partir de tempos de resposta
+- **Método:** EZ-diffusion fitting (Wagenmakers 2007) — estimativas closed-form de drift, boundary, non-decision time
+- **Insight:** Decisões rápidas = alta certeza; lentas = conflito interno
+- **Testes:** 6 testes
+
+### P.3 CNN-LSTM Skill Estimator (Item #8)
+- **Arquivo:** `packages/opponent_model/skill_estimator.py`
+- **Classes:** `Conv1DLayer` (extração local) → `LSTMCell` (dependência sequencial) → `SkillEstimatorModel` (FC → sigmoid)
+- **Online:** `OnlineSkillEstimator` acumula `DecisionFeature`s e estima skill rating 0-1 com labels: fish/recreational/regular/skilled/expert
+- **Testes:** 8 testes
+
+### P.4 Synthetic Player Generator (Item #9)
+- **Arquivo:** `packages/opponent_model/synthetic_players.py`
+- **Classe:** `SyntheticPlayerGenerator` — PGM-inspired: sample archetype → base stats → skill adjustment → noise
+- **8 arquétipos:** nit, tag, lag, maniac, fish, whale, rock, calling_station
+- **16 stats por jogador** com `to_vector()` produzindo 12-dim compatível com StyleEmbedder
+- **Testes:** 8 testes
+
+### P.5 Status Final
+- **Itens implementados:** 9 de 10 (item #10 LLM gambling biases é validação, prioridade baixa)
+- **Total de testes novos:** 35 (itens #6-#10) + 28 (NeuPL+MBOM) + 26 (Update-Equiv) + 21 (PokerBench) + 18 (VAD-CFR) = **128 novos testes**
+- **Todos os 1366+ testes passam** (exceto 1 pré-existente não relacionado)
