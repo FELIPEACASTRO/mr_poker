@@ -1353,7 +1353,34 @@ Sequência recomendada: 44→45→46→47→48→51→49→50→54→52→53→6
 | + P3 Longo Prazo | HDCFR + PHH pretrain + NFSP | 70-80% Top-1 | ~120-140 |
 | + Fases O anteriores | ReBeL + AlphaHoldem | 80-90% Top-1 | ~140-160 |
 
-### P.7. Fontes Consultadas
+### P.7. Achados do Kaggle (Varredura Completa)
+
+#### Datasets Relevantes no Kaggle
+| Dataset | Autor | Relevancia | Uso |
+|---------|-------|-----------|-----|
+| **Kaggle Game Arena Heads-Up Poker** | Kaggle/DeepMind | MUITO ALTA | LLMs frontier jogando HUNL — o3/GPT-5.2 dominaram com hiper-agressividade |
+| **Online Poker Games** | murilogmamaral | ALTA | Hand histories reais de Spin & Go convertidos em dados estruturados |
+| **Poker Hold'Em Games** | smeilz | ALTA | Forca/fraqueza de maos individuais |
+| **Poker Game Dataset** | hosseinah1 | MEDIA | Classificacao de maos |
+| **Poker Datasets (UCI + Sintetico)** | brijeshbmehta | MEDIA | UCI original + versoes sinteticas grandes para class imbalance |
+
+#### Competicoes/Benchmarks no Kaggle
+| Competicao | Status | Relevancia |
+|-----------|--------|-----------|
+| **Game Arena Poker** (benchmark) | ATIVO | MUITO ALTA — avaliacao de LLMs via poker HUNL |
+| **Poker Scenario Fold** | Benchmark task | MEDIA — dados rotulados fold/no-fold |
+| **Let's AI Poker!!** (kcsai2022) | Encerrada | MEDIA — starter code e baselines |
+
+#### Insight Estrategico Chave
+> **Na Game Arena Poker do Kaggle (Fev 2026), bots da OpenAI (o3, GPT-5.2) dominaram com estrategias HIPER-AGRESSIVAS.** Isso sugere que agressividade pode estar sub-ponderada nos modelos atuais. O MR_POKER deve considerar aumentar o peso da agressividade em contextos AI-vs-AI.
+
+#### Recursos Extra-Kaggle Descobertos
+| Recurso | Fonte | Uso |
+|---------|-------|-----|
+| **IRC Poker Database** | U. Alberta | 10M+ maos reais (1995-2001), base rates massivas |
+| **Husky Hold'em Bench** | OpenReview | "Can LLMs Design Competitive Poker Bots?" — benchmark direto para abordagem MR_POKER |
+
+### P.8. Fontes Consultadas
 
 | Fonte | URL | O que foi encontrado |
 |-------|-----|---------------------|
