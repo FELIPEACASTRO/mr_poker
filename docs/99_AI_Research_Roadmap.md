@@ -1205,3 +1205,203 @@ Sequência recomendada: 44→45→46→47→48→51→49→50→54→52→53→6
 | RLCard | rlcard.org | CFR, NFSP, Deep CFR frameworks |
 | PokerRL | GitHub: EricSteinberger/PokerRL | NFSP, RPG, Single Deep CFR |
 | Stanford CS224R | cs224r.stanford.edu | LLM-guided opponent modeling |
+
+---
+
+## P. PESQUISA APROFUNDADA — Achados da Varredura Global (2026-03-16)
+
+> Fontes: Kaggle, HuggingFace, GitHub, arXiv, ACM, Springer, Princeton Thesis, AAAI
+> Objetivo: Identificar TUDO que possa melhorar predição e precisão do MR_POKER
+> Última atualização: 2026-03-16
+
+### P.1. Novos Datasets Descobertos
+
+| Dataset | Tamanho | Fonte | Uso Potencial |
+|---------|---------|-------|---------------|
+| **PHH Dataset (Zenodo)** | 21.6M NL + 278.8M ACPC + 620M total | github.com/uoftcprg/phh-dataset + zenodo.org/10.5281/zenodo.10796885 | Pre-training massivo de opponent models com 300M+ mãos reais |
+| **Pluribus Hands (Science)** | 10K mãos | Science 2019 supplementary | Referência de jogo superhuman 6-player |
+| **ACPC Competition Data** | 278.8M mãos (2009-2017) | computerpokercompetition.org | AI vs AI: dados de treino sem vieses humanos |
+| **PokerBench Training Set** | 60K preflop + 500K postflop | github.com/pokerllm/pokerbench | SFT training com labels GTO-solver (já parcialmente usado) |
+| **UCI Poker Hand** | 1M+ samples (25K train, 1M test) | archive.ics.uci.edu/dataset/158 | Benchmark clássico de classificação de mãos |
+
+### P.2. Novos Algoritmos/Técnicas Descobertos
+
+#### P.2.1. DDCFR — Dynamic Discounted CFR (ICLR 2024 Spotlight)
+- **Paper**: rpSebastian/DDCFR (GitHub)
+- **Inovação**: Ao invés de desconto fixo (como DCFR alpha/beta/gamma), aprende os fatores de desconto dinamicamente via Evolutionary Strategies ou PPO
+- **Melhoria sobre DCFR**: Adapta desconto por jogo/situação, não usa one-size-fits-all
+- **Integração**: Substituir fatores fixos em `packages/cfr_agent/trainer.py` por rede que aprende desconto
+- **Impacto**: Convergência mais rápida que DCFR em jogos diversos
+- **Dificuldade**: Média-Alta
+
+#### P.2.2. AMP3 — Adaptive Multi-Player Poker Policy (Springer 2025)
+- **Paper**: link.springer.com/article/10.1007/s00521-025-11262-x
+- **Inovação**: Opponent Style Modeling (OSM) via deep learning prediz features de estilo do oponente a partir de dados históricos + Actor-Critic framework para política adaptativa
+- **Arquitetura**: Two-layer NN (Actor-Critic) + transformer separado para opponent modeling que adiciona predições ao observation space
+- **Para 6-player**: Primeiro sistema acadêmico focado em multiplayer com opponent modeling explícito
+- **Integração**: Combinar com nosso ParticleFilter + BehaviorPredictor
+- **Impacto**: +10-15 BB/100 em mesas 6-max
+- **Dificuldade**: Média
+
+#### P.2.3. PokerBench Fine-Tuning Pipeline Otimizado (AAAI 2025)
+- **Paper**: arxiv.org/abs/2501.08328
+- **Achados-chave**:
+  - SFT com 5000 steps, batch 128, lr 1e-6 → 78.26% accuracy (Llama-3-8B)
+  - Treinamento com dados balanceados (resampling de ações) é crucial
+  - Higher PokerBench score → higher win rate (+50.88 bb/100 entre checkpoints)
+  - Post-flop mais difícil que pre-flop para todos os modelos
+  - 11 classes de board texture para categorização
+- **Integração**: Aplicar mesmos hiperparâmetros ao nosso SFT Qwen2.5-1.5B
+- **Impacto**: +10-20% accuracy no PokerBench
+
+#### P.2.4. Tilt Detection via ML (Princeton Thesis)
+- **Paper**: "Know When to Fold'Em" — Princeton University
+- **Inovação**: Supervised ML approach usando Composite Tilt Indicator (CTI) como label
+- **Features para tilt**: VPIP delta nas últimas N mãos vs baseline, aggression spike pós bad-beat, fold-to-3bet queda, streak de perdas, overbet frequency
+- **ML Models**: Treinados em hand history real com precision/recall altos
+- **Integração**: Validar nosso TiltDetector contra a metodologia Princeton
+- **Impacto**: Validação científica da abordagem implementada
+- **Status**: ✅ Já implementamos TiltDetector com CTI similar
+
+#### P.2.5. LSTM/DeepBot para Opponent Modeling (tamlhp/deepbot-poker)
+- **Fonte**: github.com/tamlhp/deepbot-poker
+- **Arquitetura**: LSTM para memória sequencial de ações do oponente + treino com genetic algorithm
+- **Vantagem**: LSTMs capturam dependências longas melhor que sliding window
+- **Integração**: Substituir SimpleNN no BehaviorPredictor por arquitetura GRU/LSTM
+- **Impacto**: +10-15% accuracy na predição de próxima ação
+- **Dificuldade**: Média (já temos SimpleNN, precisa estender para recurrent)
+
+#### P.2.6. Opponent-Modeling-and-Predicting-Opponent-moves (Random Forest)
+- **Fonte**: github.com/hanizaidi110/Opponent-Modeling-and-Predicting-Opponent-moves-in-Poker
+- **Técnica**: Random Forest Tree Classifiers para classificação de player type e predição
+- **Features**: VPIP, PFR, aggression, 3-bet%, fold-to-cbet + features derivadas
+- **Uso**: Validação cruzada — comparar nossa classificação com Random Forest baseline
+- **Impacto**: Benchmark alternativo para classifier accuracy
+
+#### P.2.7. Auto-Encoder para Behavior Prediction (ScienceDirect)
+- **Paper**: sciencedirect.com/science/article/abs/pii/S1875952121000434
+- **Técnica**: Auto-encoder NN comprime representação do comportamento do oponente em latent space, depois decodifica para predizer próxima ação
+- **Vantagem**: Captura padrões não-lineares que features manuais perdem
+- **Integração**: Adicionar auto-encoder layer ao BehaviorPredictor
+- **Impacto**: Representação mais rica do estilo do oponente
+- **Dificuldade**: Média
+
+### P.3. Novos Frameworks/Repositórios
+
+| Repo | Algoritmos | Uso para MR_POKER |
+|------|-----------|-------------------|
+| **DDCFR** (rpSebastian) | Dynamic Discounted CFR | Melhoria direta sobre nosso DCFR |
+| **HDCFR** (LucasCJYSDL) | Hierarchical Deep CFR | Skills transferíveis, treino modular |
+| **pycfr** (tansey) | Vanilla/MC/Outcome CFR | Referência Python pura para validação |
+| **td_cfr** (tansey) | Temporal Difference CFR | Alternativa sample-efficient ao MC-CFR |
+| **neuron_poker** (dickreuter) | DQN + OpenAI Gym | Environment de poker para RL training |
+| **poker-learn** (chasembowers) | scikit-learn poker | Baseline ML para classificação |
+| **Texas-Holdem-RL** (jarczano) | DNN + TF multiprocess | RL multiprocessing reference |
+
+### P.4. Técnicas de Player Style Embedding
+
+**Conceito descoberto**: Representar o estilo de jogo de cada oponente como um vetor denso (embedding) em espaço latente, onde oponentes similares ficam próximos.
+
+**Técnicas aplicáveis**:
+1. **Auto-encoder**: Comprimir [VPIP, PFR, 3bet%, aggression, fold-to-cbet, ...] → vetor de 16-32 dims
+2. **Variational Auto-encoder (VAE)**: Gerar distribuição no latent space, permite sampling de estilos sintéticos
+3. **Contrastive Learning**: Treinar embeddings onde oponentes do mesmo arquétipo ficam próximos (triplet loss)
+4. **Clustering no latent space**: K-means ou HDBSCAN para descobrir sub-arquétipos além dos 8 canônicos
+5. **t-SNE/UMAP para visualização**: Mapear população de oponentes em 2D
+
+**Integração**: Novo módulo `packages/opponent_model/style_embedding.py`
+**Impacto**: Classificação mais granular + transfer learning entre oponentes similares
+
+### P.5. Roadmap de Implementação das Novas Descobertas
+
+**Prioridade 1 — Quick Wins (1-2 dias):**
+
+| # | Melhoria | Impacto | Esforço |
+|---|---------|---------|---------|
+| 66 | Aplicar hiperparâmetros PokerBench (batch 128, lr 1e-6, 5000 steps) ao SFT | +5-10% accuracy | Baixo |
+| 67 | Balanced resampling de ações no training data | +3-5% accuracy | Baixo |
+| 68 | Validar TiltDetector contra metodologia Princeton CTI | Validação científica | Baixo |
+| 69 | DDCFR — substituir desconto fixo por aprendido (ES-based) | Convergência +20-50% | Médio |
+
+**Prioridade 2 — Médio Prazo (3-5 dias):**
+
+| # | Melhoria | Impacto | Esforço |
+|---|---------|---------|---------|
+| 70 | GRU/LSTM no BehaviorPredictor (substituir sliding window) | +10-15% prediction | Médio |
+| 71 | Auto-encoder para style embedding | Classificação granular | Médio |
+| 72 | AMP3 — Actor-Critic com opponent style modeling para 6-max | +10-15 BB/100 | Alto |
+| 73 | Board texture classification (11 classes PokerBench) | Melhor postflop play | Médio |
+| 74 | TD-CFR como alternativa sample-efficient | Menos variance | Médio |
+
+**Prioridade 3 — Longo Prazo (1-2 semanas):**
+
+| # | Melhoria | Impacto | Esforço |
+|---|---------|---------|---------|
+| 75 | DDCFR com PPO para aprender fatores de desconto | Convergência ótima | Alto |
+| 76 | HDCFR — decomposição hierárquica em skills | Transfer learning | Muito Alto |
+| 77 | PHH Dataset (21.6M mãos) para pre-training | Dados reais massivos | Alto |
+| 78 | Contrastive learning para style embeddings (triplet loss) | Sub-arquetipos | Alto |
+| 79 | NFSP completo (Neural Fictitious Self-Play) | Alternativa a CFR | Muito Alto |
+
+### P.6. Impacto Cumulativo Estimado (Novas Descobertas)
+
+| Fase | Melhoria | Accuracy Predição | BB/100 |
+|------|---------|-------------------|--------|
+| Estado Atual | Baseline | 38% Top-1, 60% Top-2 | ~91 vs call-station |
+| + P1 Quick Wins | SFT otimizado + DDCFR | 45-50% Top-1 | ~96-101 |
+| + P2 Médio Prazo | GRU + embedding + AMP3 | 55-65% Top-1 | ~106-119 |
+| + P3 Longo Prazo | HDCFR + PHH pretrain + NFSP | 70-80% Top-1 | ~120-140 |
+| + Fases O anteriores | ReBeL + AlphaHoldem | 80-90% Top-1 | ~140-160 |
+
+### P.7. Fontes Consultadas
+
+| Fonte | URL | O que foi encontrado |
+|-------|-----|---------------------|
+| Kaggle Datasets | kaggle.com | poker-heads-up (900K), UCI poker, poker-holdem-games |
+| Kaggle Notebooks | kaggle.com | Performance analysis, hand classification, player profiling |
+| HuggingFace Models | huggingface.co | 20+ modelos poker (Qwen3, Llama, SmolLM), GRPO/SFT/RL |
+| HuggingFace Datasets | huggingface.co | PokerBench, takara-ai/poker_hands, GTO datasets |
+| HuggingFace Papers | huggingface.co/papers | PokerBench AAAI 2025, SPIRAL, SpinGPT |
+| GitHub (poker topic) | github.com | PokerRL, DDCFR, HDCFR, pycfr, neuron_poker, deepbot |
+| arXiv | arxiv.org | AMP3, Deep Predictive DCFR, PokerBench, Embedding CFR |
+| Springer | link.springer.com | AMP3 opponent style modeling (2025) |
+| ScienceDirect | sciencedirect.com | Auto-encoder behavior prediction |
+| Princeton | theses-dissertations.princeton.edu | Tilt detection via supervised ML |
+| ACM | dl.acm.org | Science and Detection of Tilting (2016) |
+| aiagentstore.ai | aiagentstore.ai | ❌ Nenhum agente poker/RL/GT (marketplace genérico) |
+| Stanford CS224R | cs224r.stanford.edu | LLM-guided opponent modeling + curriculum learning |
+| pokerbotai.com | pokerbotai.com | Commercial poker AI — 300M+ hands training, adaptation curve |
+
+---
+
+## RESUMO EXECUTIVO — STATUS COMPLETO DO PROJETO
+
+```
+IMPLEMENTADO:
+  ✅ 1203/1203 testes passando
+  ✅ 34 módulos originais do roadmap
+  ✅ 9 módulos comportamentais (Batches 11-16)
+  ✅ Deep CFR + DCFR + MCCFR
+  ✅ 8 arquétipos + Particle Filter otimizado
+  ✅ BehaviorPredictor (cross-entropy gradients)
+  ✅ ToolPoker (LLM + Solver integrado)
+  ✅ Dataset publicado no HuggingFace
+
+EM PROGRESSO:
+  🔄 SFT Training no Kaggle (GPU T4, Qwen2.5-1.5B + LoRA)
+  🔄 Pesquisa contínua de melhorias
+
+ROADMAP TOTAL:
+  79 itens identificados (seções A-P)
+  30+ papers acadêmicos com técnicas aplicáveis
+  20+ modelos no HuggingFace disponíveis
+  15+ datasets utilizáveis
+  10+ frameworks de referência
+
+PRÓXIMOS QUICK WINS:
+  1. Otimizar SFT com hiperparâmetros PokerBench
+  2. DDCFR (Dynamic Discounted CFR)
+  3. GRU no BehaviorPredictor
+  4. Style Embeddings para classificação granular
+  5. Board Texture Classification
+```
