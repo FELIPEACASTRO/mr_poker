@@ -22,6 +22,7 @@ from packages.common.types import ActionType
 if TYPE_CHECKING:
     from packages.cfr_agent.deep_cfr import DeepCFRTrainer
     from packages.engine.engine import GameEngine, HandRuntime
+    from packages.opponent_model.behavioral_pipeline import BehavioralPipeline
     from packages.opponent_model.classifier import OpponentTracker
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,7 @@ class CFRAgent(BaselineAgent):
         exploit_blend: float = 0.0,
         deep_cfr: DeepCFRTrainer | None = None,
         opponent_tracker: OpponentTracker | None = None,
+        behavioral_pipeline: BehavioralPipeline | None = None,
     ) -> None:
         super().__init__()
         self.cfr_state = cfr_state
@@ -56,6 +58,7 @@ class CFRAgent(BaselineAgent):
         self.exploit_blend = max(0.0, min(1.0, exploit_blend))
         self.deep_cfr = deep_cfr
         self.opponent_tracker = opponent_tracker
+        self.behavioral_pipeline = behavioral_pipeline
 
     def decide(self, runtime: HandRuntime, engine: GameEngine) -> AgentDecision:
         baseline = super().decide(runtime, engine)
@@ -78,11 +81,20 @@ class CFRAgent(BaselineAgent):
             auto_blend = self.opponent_tracker.compute_exploit_blend(opponent_seat)
             effective_blend = max(effective_blend, auto_blend)
 
+        # Layer 2b: Behavioral pipeline adjustments (tilt, timing, fatigue, etc.)
+        if self.behavioral_pipeline is not None:
+            signals = self.behavioral_pipeline.get_signals()
+            effective_blend = min(1.0, effective_blend + signals.exploit_blend_adjustment)
+
         # Layer 3: Apply exploitation adjustments
         if effective_blend > 0:
             strategy = self._apply_exploitation(
                 strategy, baseline, legal, effective_blend, opponent_seat
             )
+
+        # Layer 4: Bias exploitation from behavioral pipeline
+        if self.behavioral_pipeline is not None and effective_blend > 0:
+            strategy = self.behavioral_pipeline.adjust_strategy(strategy)
 
         # Sample action from final strategy
         sampled_action = strategy.sample(self.rng)
