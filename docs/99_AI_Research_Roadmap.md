@@ -1399,6 +1399,37 @@ Sequência recomendada: 44→45→46→47→48→51→49→50→54→52→53→6
 | Stanford CS224R | cs224r.stanford.edu | LLM-guided opponent modeling + curriculum learning |
 | pokerbotai.com | pokerbotai.com | Commercial poker AI — 300M+ hands training, adaptation curve |
 
+### P.9. Achados do HuggingFace (Varredura Completa)
+
+#### Datasets Adicionais Descobertos
+| Dataset | Downloads | Descricao | Uso |
+|---------|----------|-----------|-----|
+| **wesleyyliu/PokerBenchExpanded** | - | PokerBench expandido com cenarios extras | Suplementar SFT training |
+| **JerryMccree/Poker_reward_agent_data** | - | Dados de reward agent para RL | Reward shaping/model |
+| **SoelMgd/Poker_Dataset** | - | Q&A format, GitHub: Poker_Transformers | LLM poker training |
+| **the-acorn-ai/kuhn-poker-Qwen-QwQ-32B** | - | Kuhn poker com reasoning models | LLM reasoning patterns |
+| **mlfoundations-dev/stackexchange_poker** | - | Poker Stack Exchange Q&A | Poker terminology + raciocinio |
+| **jingws/poker** | - | JSON, 100K-1M examples | Hand histories em larga escala |
+
+#### Modelos Adicionais Descobertos
+| Modelo | Base | Metodo | Uso |
+|--------|------|--------|-----|
+| **nobody12321/poker-pretraining** | GPT-2 | Pre-train com tokenizer poker | Domain-specific pre-training |
+| **spiral-rl/Spiral-Qwen3-4B** | Qwen3-4B | Self-play SPIRAL | Raciocinio game-theoretic |
+| **eeshanprabhu5/PokerPOCHH** | Mistral-7B | SFT em hand histories | Fine-tune em historico real |
+| **sr5434/AlphaZero-Kuhn-Poker** | AlphaZero | MCTS+NN | Referencia AlphaZero em poker |
+
+#### Papers Adicionais Descobertos
+| Paper | Ano | Achado-Chave | Impacto |
+|-------|-----|-------------|---------|
+| **Discovering Multiagent Learning Algorithms** (2602.16928) | 2026 | AlphaEvolve descobre VAD-CFR + Optimistic Regret Matching | Variantes CFR superiores |
+| **NeuPL** (2202.07415) | 2022 | Multi-policy em modelo unico com transfer entre estrategias | Multiplos arquetipos num modelo |
+| **Valet** (2603.03252) | Mar 2026 | 21 jogos de cartas benchmarkados para IIG | Comparacao cross-game |
+| **MARS** (2510.15414) | 2025 | Self-play RL com turn-level advantage estimation | Treino RL avancado |
+| **Strategist** (2408.10635) | 2024 | Bi-level tree search (estrategia + tática) para LLMs | Decomposicao de decisao |
+| **NfgTransformer** (2402.08393) | 2024 | Transformer equivariant para Nash equilibria | Arquitetura neural Nash |
+| **Do LLM Agents Have Regret?** (2403.16843) | 2024 | "Regret-loss" para convergencia ao equilibrio | Teoria para LLM poker |
+
 ---
 
 ## RESUMO EXECUTIVO — STATUS COMPLETO DO PROJETO
