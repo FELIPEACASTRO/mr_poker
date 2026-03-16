@@ -1690,8 +1690,8 @@ aplicáveis ao MR_POKER.
 | 1 | **VAD-CFR** | +2-5x convergência CFR | MÉDIO | ✅ IMPLEMENTADO |
 | 2 | **PokerBench Dataset** | Calibração + validação | BAIXO | ✅ IMPLEMENTADO |
 | 3 | **Update-Equivalence** | Decision-time planning 100x mais rápido | ALTO | ✅ IMPLEMENTADO |
-| 4 | **NeuPL** | Multi-policy em 1 rede | ALTO | 🟡 ALTO |
-| 5 | **MBOM** | Opponent modeling recursivo | MÉDIO | 🟡 ALTO |
+| 4 | **NeuPL** | Multi-policy em 1 rede | ALTO | ✅ IMPLEMENTADO |
+| 5 | **MBOM** | Opponent modeling recursivo | MÉDIO | ✅ IMPLEMENTADO |
 | 6 | **NfgTransformer** | Deep CFR equivariante | ALTO | 🟢 MÉDIO |
 | 7 | **DDM (Response Time)** | Timing tells formal | BAIXO | 🟢 MÉDIO |
 | 8 | **CNN-LSTM timing** | Skill estimation | MÉDIO | 🟢 MÉDIO |

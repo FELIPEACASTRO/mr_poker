@@ -12,6 +12,7 @@ from .meta_game import MetaGameTracker, AdaptationState
 from .fatigue_model import FatigueModel, FatigueLevel
 from .style_embedding import StyleEmbedder
 from .behavioral_pipeline import BehavioralPipeline, BehavioralSignals
+from .mbom import RecursiveModeler, OpponentModel as MBOMOpponentModel, BeliefState
 
 __all__ = [
     "build_opponent_profile",
@@ -36,4 +37,7 @@ __all__ = [
     "StyleEmbedder",
     "BehavioralPipeline",
     "BehavioralSignals",
+    "RecursiveModeler",
+    "MBOMOpponentModel",
+    "BeliefState",
 ]
