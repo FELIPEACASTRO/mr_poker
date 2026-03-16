@@ -2,7 +2,7 @@
 
 ## Metodo
 
-Inventario canonico baseado em `git ls-files` (`469` arquivos versionados) com apoio de leitura ancorada em linhas, headings Markdown e simbolos Python.
+Inventario canonico baseado em `git ls-files` (`517` arquivos versionados) com apoio de leitura ancorada em linhas, headings Markdown e simbolos Python.
 
 Leitura aplicada:
 
@@ -49,6 +49,15 @@ Legenda:
 | `apps/api/AGENTS.md` | autoritativo operacional / `# apps/api Scope Guide`@1 | regras de ownership da camada HTTP e validacao minima |
 | `apps/api/main.py` | codigo / `create_app`@102 | composition root HTTP; depende de FastAPI, Pydantic, packages e services; side effects: instancia store e escreve DB/`var/*` via rotas; cobertura forte em `tests/integration/test_api_*.py` e `test_health.py` |
 | `infra/AGENTS.md` | autoritativo operacional / `# infra Scope Guide`@1 | limita e explicita uso de scripts operacionais locais em shell Unix/Windows |
+
+| `.claude/launch.json` | config / JSON | configuracao de launch do ambiente Claude |
+| `=0.28.0` | artefato / versionamento | marcador de versao de dependencia |
+| `infra/notebooks/mr_poker_kaggle_full_train.ipynb` | notebook / treino | notebook de treinamento para execucao em plataforma cloud |
+| `infra/notebooks/mr_poker_sft_colab.ipynb` | notebook / treino | notebook de treinamento para execucao em plataforma cloud |
+| `infra/scripts/colab_one_click.py` | script / treino-dados | script de treino ou upload de dados PokerBench |
+| `infra/scripts/pokerbench_sft_train_hfjob.py` | script / treino-dados | script de treino ou upload de dados PokerBench |
+| `infra/scripts/pokerbench_upload_hfjob.py` | script / treino-dados | script de treino ou upload de dados PokerBench |
+| `infra/scripts/train_pokerbench_colab.py` | script / treino-dados | script de treino ou upload de dados PokerBench |
 
 ## 2. Pacote executivo em `doc/`
 
@@ -143,6 +152,64 @@ Legenda:
 | `packages/state_model/contracts.py` | codigo / `ActionLog`@8; `SnapshotLog`@15 | schemas Pydantic de logs de estado; pouco usado no runtime atual; cobertura direta nao identificada |
 | `packages/taxonomy/__init__.py` | codigo / L3 | re-export de spot taxonomy |
 | `packages/taxonomy/spot_taxonomy.py` | codigo / `classify_trace`@30; `classify_hand`@93 | taxonomia de trace e hand; deps: `collections`, `typing`; sem IO; cobertura direta em `test_taxonomy_and_export.py` e integracao API |
+
+| `packages/cfr_agent/__init__.py` | codigo / L1 | namespace do pacote CFR agent |
+| `packages/cfr_agent/agent.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/cfr_mix.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/compact_cfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/deep_cfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/embedding_cfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/gpu_cfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/hdcfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/info_set.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/kdb_d2cfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/lazy_cfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/mmd.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/odcfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/pruning.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/qre.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/robust_deep_mccfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/trainer.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/vr_deep_dcfr.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/cfr_agent/warm_start.py` | codigo / modulo CFR | modulo do agente CFR (Counterfactual Regret Minimization) |
+| `packages/dmc_agent/__init__.py` | codigo / L1 | namespace do pacote DMC agent |
+| `packages/dmc_agent/agent.py` | codigo / modulo DMC | modulo do agente DMC (Deep Monte Carlo) |
+| `packages/equity/neural_equity.py` | codigo / modulo equity | estimador de equity baseado em rede neural |
+| `packages/evaluation/aivat.py` | codigo / modulo eval | estimador AIVAT de variancia reduzida |
+| `packages/llm_agent/tool_poker.py` | codigo / modulo LLM | ferramentas de poker para agente LLM |
+| `packages/mcts_agent/__init__.py` | codigo / L1 | namespace do pacote MCTS agent |
+| `packages/mcts_agent/agent.py` | codigo / modulo MCTS | modulo do agente MCTS (Monte Carlo Tree Search) |
+| `packages/opponent_model/amp3.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/bayes_relational.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/bayesian_range.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/behavior_prediction.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/classifier.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/fatigue_model.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/meta_game.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/particle_filter.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/positional_profile.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/sad_profiler.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/sizing_tells.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/street_patterns.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/tilt_detector.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/timing_tells.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/opponent_model/transformer_model.py` | codigo / modulo opponent | modulo de modelagem de oponente |
+| `packages/ppo_agent/__init__.py` | codigo / L1 | namespace do pacote PPO agent |
+| `packages/ppo_agent/agent.py` | codigo / modulo PPO | modulo do agente PPO (Proximal Policy Optimization) |
+| `packages/solver/__init__.py` | codigo / L1 | namespace do pacote solver |
+| `packages/solver/abd.py` | codigo / modulo solver | modulo de resolucao de equilibrio |
+| `packages/solver/action_translation.py` | codigo / modulo solver | modulo de resolucao de equilibrio |
+| `packages/solver/casper.py` | codigo / modulo solver | modulo de resolucao de equilibrio |
+| `packages/solver/equilibrium_refinements.py` | codigo / modulo solver | modulo de resolucao de equilibrio |
+| `packages/solver/lamir.py` | codigo / modulo solver | modulo de resolucao de equilibrio |
+| `packages/solver/qp_nash.py` | codigo / modulo solver | modulo de resolucao de equilibrio |
+| `packages/solver/safe_subgame.py` | codigo / modulo solver | modulo de resolucao de equilibrio |
+| `packages/strategy/bias_exploiter.py` | codigo / modulo strategy | modulo de estrategia avancada |
+| `packages/strategy/icm.py` | codigo / modulo strategy | modulo de estrategia avancada |
+| `packages/strategy/kelly.py` | codigo / modulo strategy | modulo de estrategia avancada |
+| `packages/strategy/pcpg.py` | codigo / modulo strategy | modulo de estrategia avancada |
+| `packages/strategy/psro.py` | codigo / modulo strategy | modulo de estrategia avancada |
+| `packages/training/distillation.py` | codigo / modulo training | modulo de destilacao de conhecimento |
 
 ## 4. `services/*`
 
@@ -248,6 +315,21 @@ Legenda:
 | `tests/unit/test_taxonomy_and_export.py` | teste / `test_hand_taxonomy_and_export`@9; `test_session_analytics_has_taxonomy_and_edges`@42 | cobre taxonomy, export e analytics |
 | `tests/unit/test_tournament_curriculum_readiness.py` | teste / `test_tournament_curriculum_and_readiness`@11 | cobre tournament, curriculum e readiness |
 
+| `tests/unit/test_advanced_cfr.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch10_missing_roadmap.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch11_behavior.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch1_cfr_optimizations.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch2_strategy_modules.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch3_ppo_gpu_cfr.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch4_deep_cfr_extensions.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch5_opponent_modeling.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch6_search_selfplay.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch7_embedding_hdcfr_qre.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch8_solvers.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_batch9_advanced_systems.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_cfr_agent.py` | teste / unitario | suite de testes unitarios |
+| `tests/unit/test_pokerbench_adapter.py` | teste / unitario | suite de testes unitarios |
+
 ## 6. `var/*` versionado
 
 | Arquivo | Tipo / ancora | Inventario tecnico |
@@ -260,6 +342,8 @@ Legenda:
 | `var/model_cards/74162623-a510-40a0-930a-449e14052116.card.json` | artefato JSON / model card | model card versionado para rastreabilidade e validacao da trilha de governance |
 | `var/models/.gitkeep` | placeholder / L0 | reserva o diretorio de modelos persistidos em runtime |
 | `var/regression/.gitkeep` | placeholder / L0 | reserva o diretorio de suites de regressao geradas em runtime |
+
+| `var/model_cards/040006ca-60b2-4263-9267-8efd52bb44e7.card.json` | artefato versionado / model card | metadados de governance para versao de modelo |
 
 Observacao semantica: o workspace local observado contem ainda `var/poker_ai_local.db`, datasets, modelos, model cards, relatorios e batches nao versionados; esses artefatos sao mapeados em `docs/96_System_Knowledge_Dossier.md` e `docs/98_Data_AI_DB_Integration_Map.md`, mas nao entram no baseline tracked do Git.
 
@@ -384,6 +468,8 @@ Observacao semantica: o workspace local observado contem ainda `var/poker_ai_loc
 | `docs/diagrams/11_dataset_builder_and_eval.md` | doc / diagrama / suporte | fluxo do dataset builder e avaliacao |
 | `docs/diagrams/12_tournament_and_readiness.md` | doc / diagrama / suporte | fluxo de tournament e readiness |
 
+| `docs/99_AI_Research_Roadmap.md` | doc / roadmap AI | roadmap de pesquisa em IA e fronteira tecnica |
+
 ## 8. Complementos do baseline atual
 
 | Arquivo | Tipo / ancora | Inventario tecnico |
@@ -399,28 +485,6 @@ Observacao semantica: o workspace local observado contem ainda `var/poker_ai_loc
 | `apps/api/routers/spots.py` | codigo / router spots | endpoints de taxonomia e spots |
 | `apps/api/routers/system.py` | codigo / router system | health, readiness, alpha-candidate e serving da SPA em `/ui` |
 | `apps/api/routers/utils.py` | codigo / utilitario routers | normalizacao de erros e payloads auxiliares |
-| `apps/web_ui/.gitignore` | frontend / config | exclusao de artefatos de build/cache do mini-app React |
-| `apps/web_ui/README.md` | frontend / runbook local | comandos `dev/build/preview` e integracao com `/ui` |
-| `apps/web_ui/index.html` | frontend / entry HTML | shell inicial do app React servido pelo Vite |
-| `apps/web_ui/package-lock.json` | frontend / lockfile | lock de dependencias npm para builds reproduziveis |
-| `apps/web_ui/package.json` | frontend / scripts e deps | stack React+Vite+Vitest e scripts de dev/build/test |
-| `apps/web_ui/src/App.tsx` | frontend / raiz SPA | layout principal, navegacao rapida e roteamento interno |
-| `apps/web_ui/src/__tests__/app.test.tsx` | frontend / teste unitario | valida render da navegacao e modulo principal |
-| `apps/web_ui/src/__tests__/httpClient.test.ts` | frontend / teste unitario | valida sucesso/erro/timeout do cliente HTTP |
-| `apps/web_ui/src/lib/httpClient.ts` | frontend / cliente API | timeout, retry leve para GET e tratamento de erro |
-| `apps/web_ui/src/lib/types.ts` | frontend / tipos | tipos compartilhados de payloads da UI |
-| `apps/web_ui/src/main.tsx` | frontend / bootstrap | mount React e `BrowserRouter` com basename `/ui` |
-| `apps/web_ui/src/modules/BenchmarksModule.tsx` | frontend / modulo tela | operacoes de benchmark e round-robin |
-| `apps/web_ui/src/modules/HandsModule.tsx` | frontend / modulo tela | fluxo de maos: criar, auto, actions, review |
-| `apps/web_ui/src/modules/ModelsModule.tsx` | frontend / modulo tela | listagem, treino e avaliacao de modelos |
-| `apps/web_ui/src/modules/OverviewModule.tsx` | frontend / modulo tela | health, readiness e alpha-candidate |
-| `apps/web_ui/src/modules/SessionsModule.tsx` | frontend / modulo tela | execucao de sessao e leitura de analytics/traces |
-| `apps/web_ui/src/setupTests.ts` | frontend / setup Vitest | bootstrap de ambiente de testes da UI |
-| `apps/web_ui/src/styles.css` | frontend / design tokens | tema futurista clean, responsividade e acentos poker leves |
-| `apps/web_ui/tsconfig.app.json` | frontend / TypeScript | config TS do app React |
-| `apps/web_ui/tsconfig.json` | frontend / TypeScript | config raiz TS do projeto frontend |
-| `apps/web_ui/tsconfig.node.json` | frontend / TypeScript | config TS para tooling Node/Vite |
-| `apps/web_ui/vite.config.ts` | frontend / build config | base `/ui`, plugin React e setup Vitest |
 | `docs/101_Exploratory_Data_Analysis_Full_IO_Features.md` | doc / auditoria tecnica | relatorio de EDA e cobertura de I/O |
 | `docs/102_Architecture_Conformance_Report.md` | doc / auditoria tecnica | status de conformidade arquitetural atual |
 | `docs/103_Architecture_Remediation_Plan.md` | doc / plano tecnico | plano de remediacao arquitetural por fase |
@@ -437,7 +501,6 @@ Observacao semantica: o workspace local observado contem ainda `var/poker_ai_loc
 
 | Arquivo | Tipo / ancora | Inventario tecnico |
 | --- | --- | --- |
-| `.claude/settings.local.json` | config / JSON | configuracao local do ambiente Claude; sem impacto de runtime |
 | `apps/__init__.py` | codigo / L1 | namespace raiz do pacote apps |
 | `apps/api/__init__.py` | codigo / L1 | namespace do pacote API |
 | `apps/api/middleware/__init__.py` | codigo / L1 | namespace do pacote de middlewares |
@@ -449,25 +512,6 @@ Observacao semantica: o workspace local observado contem ainda `var/poker_ai_loc
 | `apps/api/response_models.py` | codigo / contratos | modelos de resposta padronizados da API |
 | `apps/api/routers/tasks.py` | codigo / router tasks | endpoints de gerenciamento de tasks assincronas |
 | `apps/api/routers/ws.py` | codigo / router websocket | endpoints de comunicacao WebSocket |
-| `apps/web_ui/src/components/ErrorBoundary.tsx` | frontend / componente | boundary de erro React para resiliencia da UI |
-| `apps/web_ui/src/components/LoadingState.tsx` | frontend / componente | indicador de carregamento reutilizavel |
-| `apps/web_ui/src/components/charts/ActionDistribution.tsx` | frontend / componente chart | grafico de distribuicao de acoes |
-| `apps/web_ui/src/components/charts/ProfitLossChart.tsx` | frontend / componente chart | grafico de lucro/perda |
-| `apps/web_ui/src/components/charts/WinRateChart.tsx` | frontend / componente chart | grafico de taxa de vitoria |
-| `apps/web_ui/src/components/poker/ActionHistory.tsx` | frontend / componente poker | historico de acoes da mao |
-| `apps/web_ui/src/components/poker/Board.tsx` | frontend / componente poker | visualizacao do board comunitario |
-| `apps/web_ui/src/components/poker/ChipStack.tsx` | frontend / componente poker | visualizacao de stack de fichas |
-| `apps/web_ui/src/components/poker/HoleCards.tsx` | frontend / componente poker | visualizacao de hole cards |
-| `apps/web_ui/src/components/poker/PlayingCard.tsx` | frontend / componente poker | carta individual visual |
-| `apps/web_ui/src/components/poker/PokerTable.tsx` | frontend / componente poker | mesa de poker visual interativa |
-| `apps/web_ui/src/components/ui/Badge.tsx` | frontend / componente UI | badge reutilizavel |
-| `apps/web_ui/src/components/ui/Button.tsx` | frontend / componente UI | botao padronizado |
-| `apps/web_ui/src/components/ui/Card.tsx` | frontend / componente UI | card container reutilizavel |
-| `apps/web_ui/src/components/ui/Modal.tsx` | frontend / componente UI | modal/dialog reutilizavel |
-| `apps/web_ui/src/components/ui/Skeleton.tsx` | frontend / componente UI | placeholder de carregamento skeleton |
-| `apps/web_ui/src/components/ui/Table.tsx` | frontend / componente UI | tabela padronizada |
-| `apps/web_ui/src/lib/api.ts` | frontend / cliente API | camada de acesso a API do backend |
-| `apps/web_ui/src/lib/theme.ts` | frontend / design | definicoes de tema e tokens visuais |
 | `configs/app.prod.json` | config / JSON | configuracao de producao da aplicacao |
 | `configs/app.test.json` | config / JSON | configuracao de teste da aplicacao |
 | `docs/architecture/README.md` | doc / indice arquitetural | indice da documentacao de arquitetura |
@@ -544,6 +588,6 @@ Observacao semantica: o workspace local observado contem ainda `var/poker_ai_loc
 
 ## 10. Fechamento do inventario
 
-- Este inventario cobre o baseline tracked atual do repositorio (`469` arquivos versionados).
+- Este inventario cobre o baseline tracked atual do repositorio (`517` arquivos versionados).
 - Artefatos runtime nao versionados foram auditados semanticamente, mas permanecem fora do inventario canonico do Git.
 - Para leitura arquitetural e operacional, usar este arquivo em conjunto com `docs/96_System_Knowledge_Dossier.md`, `docs/98_Data_AI_DB_Integration_Map.md` e `docs/99_Gap_and_Risk_Register.md`.

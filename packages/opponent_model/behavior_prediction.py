@@ -110,7 +110,7 @@ class BehaviorPredictor:
         # Training data
         self._train_inputs: list[list[float]] = []
         self._train_targets: list[list[float]] = []
-        self._max_train_size = 5000
+        self._max_train_size = 20000
 
     def observe(self, event: ActionEvent) -> None:
         """Record an observed action."""
@@ -188,6 +188,7 @@ class BehaviorPredictor:
     def train_step(self, epochs: int = 1) -> float:
         """Train the network on accumulated observations.
 
+        Uses proper softmax cross-entropy gradients for classification.
         Returns average loss.
         """
         if len(self._train_inputs) < 2:
@@ -195,24 +196,36 @@ class BehaviorPredictor:
 
         total_loss = 0.0
         n = 0
+        net = self.network
 
         for _ in range(epochs):
             indices = list(range(len(self._train_inputs)))
             self.rng.shuffle(indices)
 
             for i in indices:
-                features = self._train_inputs[i]
+                x = self._train_inputs[i]
                 target = self._train_targets[i]
 
-                # Forward pass
-                logits = self.network.forward(features)
+                # Forward pass (replicate SimpleNN internals for proper gradients)
+                hidden_raw = []
+                hidden = []
+                for h in range(len(net.w1)):
+                    val = net.b1[h] + sum(net.w1[h][j] * x[j] for j in range(len(x)))
+                    hidden_raw.append(val)
+                    hidden.append(max(0.0, val))
 
-                # Softmax + cross-entropy loss
+                logits = []
+                for o in range(len(net.w2)):
+                    val = net.b2[o] + sum(net.w2[o][j] * hidden[j] for j in range(len(hidden)))
+                    logits.append(val)
+
+                # Softmax
                 max_logit = max(logits) if logits else 0.0
                 exp_vals = [math.exp(l - max_logit) for l in logits]
                 total_exp = sum(exp_vals)
                 probs = [e / total_exp for e in exp_vals]
 
+                # Cross-entropy loss
                 loss = -sum(
                     t * math.log(max(p, 1e-10))
                     for t, p in zip(target, probs)
@@ -220,9 +233,25 @@ class BehaviorPredictor:
                 total_loss += loss
                 n += 1
 
-                # Use SimpleNN.train_step with cross-entropy target
-                # Convert softmax probs to MSE-friendly target
-                self.network.train_step(features, target, self.lr)
+                # Gradient of softmax cross-entropy: d_logit = probs - target
+                d_output = [probs[o] - target[o] for o in range(len(logits))]
+
+                # Backward: output layer
+                d_hidden = [0.0] * len(hidden)
+                for o in range(len(net.w2)):
+                    for j in range(len(hidden)):
+                        d_hidden[j] += d_output[o] * net.w2[o][j]
+                        net.w2[o][j] -= self.lr * d_output[o] * hidden[j]
+                    net.b2[o] -= self.lr * d_output[o]
+
+                # Backward: hidden layer (ReLU derivative)
+                for h in range(len(net.w1)):
+                    if hidden_raw[h] <= 0:
+                        continue
+                    grad = d_hidden[h]
+                    for j in range(len(x)):
+                        net.w1[h][j] -= self.lr * grad * x[j]
+                    net.b1[h] -= self.lr * grad
 
         return total_loss / max(n, 1)
 
