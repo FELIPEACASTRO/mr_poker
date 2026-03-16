@@ -1456,10 +1456,257 @@ ROADMAP TOTAL:
   15+ datasets utilizáveis
   10+ frameworks de referência
 
+QUICK WINS CONCLUÍDOS (Batch 17-18):
+  ✅ GRU no BehaviorPredictor (top-1: 26%→32%, top-2: 54%→63%)
+  ✅ Style Embeddings (auto-encoder para classificação granular)
+  ✅ Board Texture Classification (11 texturas)
+  ✅ Kelly Criterion (bankroll management)
+  ✅ Exploitability Calculator (mBB/hand + best response)
+  ✅ NFSP Agent (dual RL/SL networks)
+  ✅ Deep CFR: Huber loss, gradient clipping, weight decay, linear CFR
+  ✅ BehavioralPipeline (integração total dos módulos comportamentais)
+  ✅ CFRAgent wired com BehavioralPipeline (layers 2b + 4)
+
 PRÓXIMOS QUICK WINS:
   1. Otimizar SFT com hiperparâmetros PokerBench
-  2. DDCFR (Dynamic Discounted CFR)
-  3. GRU no BehaviorPredictor
-  4. Style Embeddings para classificação granular
-  5. Board Texture Classification
+  2. VAD-CFR (Volatility-Adaptive Discounted CFR) — AlphaEvolve paper Feb 2026
+  3. ToolPoker framework (LLM + external solver integration)
+  4. CNN-LSTM timing model (Chess rating paper → poker timing tells)
+  5. NeuPL (Neural Population Learning) para diversidade de políticas
 ```
+
+---
+
+## Seção Q: Varredura Global de Plataformas Internacionais (Mar 2026)
+
+Análise devastadora de 9 plataformas em 5 países para identificar recursos
+aplicáveis ao MR_POKER.
+
+### Q.1 — Recursos DIRETAMENTE Relevantes ao Poker AI
+
+#### Q.1.1 PokerBench Dataset (UC Berkeley)
+- **Repo:** [RZ412/PokerBench](https://huggingface.co/datasets/RZ412/PokerBench)
+- **Paper:** [PokerBench (Jan 2025)](https://hf.co/papers/2501.08328)
+- **Conteúdo:** 11,000 cenários poker (preflop + postflop), criados com jogadores treinados
+- **Downloads:** 1,416 | **Likes:** 34
+- **Aplicação MR_POKER:** Dataset de treino/validação para supervised fine-tuning do
+  BehaviorPredictor e calibração do CFRAgent. Cenários rotulados com ações GTO.
+- **Licença:** Apache 2.0
+
+#### Q.1.2 ToolPoker Framework (Jan 2026)
+- **Paper:** [How Far Are LLMs from Professional Poker Players?](https://hf.co/papers/2602.00528)
+- **Autores:** Minhua Lin et al.
+- **Achado:** LLMs falham contra CFR tradicional. Três falhas recorrentes:
+  (1) heurísticas, (2) erros factuais, (3) gap "saber-fazer".
+- **Solução:** ToolPoker = LLM + external GTO solver → state-of-the-art gameplay
+- **Aplicação MR_POKER:** Validação da arquitetura CFR+exploit. ToolPoker confirma que
+  solver externo é necessário — nosso CFRAgent com exploit_blend é a arquitetura certa.
+
+#### Q.1.3 VAD-CFR (Volatility-Adaptive Discounted CFR) — NOVO, Fev 2026
+- **Paper:** [Discovering Multiagent Learning Algorithms with LLMs](https://hf.co/papers/2602.16928)
+- **Autores:** Zun Li, John Schultz, Daniel Hennes, Marc Lanctot (DeepMind)
+- **Upvotes:** 16
+- **Achado:** AlphaEvolve evoluiu logicamente o CFR e descobriu VAD-CFR com:
+  - Volatility-sensitive discounting (adapta desconto ao "ruído" do regret)
+  - Consistency-enforced optimism
+  - Hard warm-start policy accumulation schedule
+- **Resultado:** Supera Discounted Predictive CFR+ (estado da arte anterior)
+- **Aplicação MR_POKER:** Implementar VAD-CFR como novo modo em CFRTrainer.
+  Potencial de convergência 2-3x mais rápida que DCFR atual.
+- **Também descobriram:** SHOR-PSRO (hybrid meta-solver) para PSRO
+
+#### Q.1.4 NeuPL — Neural Population Learning (DeepMind 2022)
+- **Paper:** [NeuPL](https://hf.co/papers/2202.07415)
+- **Autores:** Siqi Liu, Luke Marris, Daniel Hennes et al.
+- **Achado:** Representação condicional de múltiplas políticas em um único modelo,
+  com transfer learning entre políticas. Convergência para best-responses.
+- **Aplicação MR_POKER:** Nosso `StyleEmbedder` é a semente para NeuPL.
+  Uma rede condicional única poderia gerar estratégias contra cada arquétipo,
+  eliminando a necessidade de treinar CFR separado para cada oponente.
+
+#### Q.1.5 NfgTransformer — Equilibrium Solving via Neural Network
+- **Paper:** [NfgTransformer](https://hf.co/papers/2402.08393)
+- **Autores:** Siqi Liu, Luke Marris et al. (DeepMind)
+- **Achado:** Transformer equivariante para jogos normal-form.
+  SOTA em equilibrium-solving, deviation gain estimation e ranking.
+- **Aplicação MR_POKER:** Arquitetura para substituir SimpleNN no Deep CFR
+  com representação game-aware (equivariante a permutações de ações).
+
+#### Q.1.6 Valet — Testbed de 21 Jogos de Cartas de Informação Imperfeita (Mar 2026)
+- **Paper:** [Valet](https://hf.co/papers/2603.03252)
+- **Achado:** 21 jogos tradicionais codificados em RECYCLE, com MCTS baseline.
+  Branching factors e métricas de duração computadas.
+- **Aplicação MR_POKER:** Benchmark para testar nosso CFRTrainer em múltiplos jogos
+  além de poker, validando generalização.
+
+#### Q.1.7 Update-Equivalence Framework para Decision-Time Planning
+- **Paper:** [Update-Equivalence](https://hf.co/papers/2304.13138)
+- **Autores:** Sokota, Farina, Wu, Hu, Brown (Meta/CMU)
+- **Achado:** Alternativa a subgame solving baseada em mirror descent.
+  2 ordens de magnitude mais rápido que busca baseada em informação pública.
+- **Aplicação MR_POKER:** Substituir subgame solving por update-equivalence
+  para decision-time planning. Escalável para jogos com muita informação privada.
+
+#### Q.1.8 PokerGPT — LLM Solver para Multi-Player (Jan 2024)
+- **Paper:** [PokerGPT](https://hf.co/papers/2401.06781)
+- **Achado:** Fine-tuning de LLM leve com RLHF em registros textuais de poker.
+  Funciona para N jogadores (não só heads-up).
+- **Aplicação MR_POKER:** Template para prompt engineering de treino SFT.
+
+### Q.2 — Recursos INDIRETAMENTE Relevantes (Behavioral/Cognitive)
+
+#### Q.2.1 LLMs e Vício em Jogos (Set 2025)
+- **Paper:** [Can LLMs Develop Gambling Addiction?](https://hf.co/papers/2509.22818)
+- **Achado:** LLMs exibem padrões de vício humano: ilusão de controle,
+  falácia do jogador, loss chasing. Sparse Autoencoder revela circuitos neurais
+  de decisão arriscada vs segura.
+- **Aplicação MR_POKER:** Validação científica de nossos módulos de viés cognitivo.
+  Confirma que gambler's fallacy e loss chasing são padrões reais e detectáveis.
+
+#### Q.2.2 Chess Rating via CNN-LSTM + Clock Times (Set 2024)
+- **Paper:** [Chess Rating Estimation](https://hf.co/papers/2409.11506)
+- **Achado:** CNN para features posicionais + LSTM bidirecional com clock times
+  prediz rating com MAE=182 pontos. Primeiro modelo sem features manuais.
+- **Aplicação MR_POKER:** Arquitetura CNN-LSTM aplicável ao TimingTellAnalyzer.
+  Clock times como input para prever skill level do oponente.
+
+#### Q.2.3 Predição de Ações NBA a partir de Entrevistas (2019)
+- **Paper:** [Predicting In-game Actions from Interviews](https://hf.co/papers/1910.11292)
+- **Achado:** Modelos neurais preveem desvios da média em métricas de jogo
+  baseado na linguagem pré-jogo. Texto + métricas passadas → melhor resultado.
+- **Aplicação MR_POKER:** Chat de mesa como feature behavioral adicional.
+  Linguagem do jogador pode revelar estado emocional (tilt).
+
+#### Q.2.4 MBOM — Model-Based Opponent Modeling (2021)
+- **Paper:** [MBOM](https://hf.co/papers/2108.01843)
+- **Achado:** Simula raciocínio recursivo no modelo de ambiente.
+  Imagina políticas do oponente melhorando e faz mistura ponderada.
+  Funciona contra fixed policy, naive learner E reasoning learner.
+- **Aplicação MR_POKER:** Evolução do nosso MetaGameTracker.
+  Em vez de só detectar adaptação, simular contra-adaptação recursiva.
+
+#### Q.2.5 Suspicion-Agent — Theory of Mind via GPT-4 (2023)
+- **Paper:** [Suspicion-Agent](https://hf.co/papers/2309.17277)
+- **Autores:** U. Tokyo / COLM 2024
+- **Achado:** GPT-4 + ToM supera NFSP em Leduc Hold'em sem treino específico.
+  Adaptação de estilo de jogo em tempo real baseada em observação.
+- **Aplicação MR_POKER:** Inspiração para integrar ToM no BiasExploiter.
+
+#### Q.2.6 Response Time → Preference Estimation (DDM, Jul 2025)
+- **Paper:** [Estimating Preferences Using Response Time Data](https://hf.co/papers/2507.20403)
+- **Achado:** Drift Diffusion Model estima preferências com taxa 1/n usando tempos de resposta.
+- **Aplicação MR_POKER:** Fundamentação teórica para nosso TimingTellAnalyzer.
+  DDM fornece modelo formal para inferir preferência/certeza a partir de tempo de decisão.
+
+#### Q.2.7 General Social Agents — Predição de Comportamento Humano (Ago 2025)
+- **Paper:** [General Social Agents](https://hf.co/papers/2508.17407)
+- **Achado:** AI agents preveem comportamento humano em 883,320 jogos novos
+  melhor que cognitive hierarchy model e equilíbrios de teoria dos jogos.
+- **Aplicação MR_POKER:** Framework para generalizar modelos de oponente
+  de cenários "seed" para novos contextos nunca vistos.
+
+### Q.3 — Plataformas Globais Analisadas
+
+#### Q.3.1 China
+
+**CSTCloud (中国科技云)**
+- **URL:** [www.cstcloud.net](https://www.cstcloud.net/)
+- **Status:** 196 modelos (Qwen, DeepSeek), 79 modelos científicos, 3.9T tokens via API
+- **Relevância MR_POKER:** LOW — modelos focados em ciência (física, química, biologia),
+  não em game theory. Porém, os modelos Qwen são base dos modelos coreanos A.X-4.0.
+- **Ação:** Monitorar Qwen-family para bases de fine-tuning futuro.
+
+**DanQing Dataset**
+- **Paper:** [arXiv:2601.10305](https://arxiv.org/abs/2601.10305)
+- **GitHub:** [deepglint/DanQing](https://github.com/deepglint/DanQing)
+- **Conteúdo:** 100M pares imagem-texto chinês (CC-BY 4.0)
+- **Relevância MR_POKER:** NONE — visão-linguagem, não aplicável a poker.
+
+#### Q.3.2 Coreia do Sul
+
+**SKT A.X Series**
+- **Modelos HuggingFace:**
+  - [skt/A.X-K1](https://huggingface.co/skt/A.X-K1) — 519B params, arquitetura AXK1, 267 likes
+  - [skt/A.X-4.0](https://huggingface.co/skt/A.X-4.0) — Qwen2-based, 23.3K downloads
+  - [skt/A.X-4.0-VL-Light](https://huggingface.co/skt/A.X-4.0-VL-Light) — 7.7B params, visão-linguagem
+- **Performance:** KMMLU 78.3 (vs GPT-4o 72.5), 33% mais eficiente em tokenização coreana
+- **Relevância MR_POKER:** LOW — LLMs generalistas para coreano, não game theory.
+  Porém, A.X-K1 como backbone para PokerGPT em coreano seria possível.
+
+**Korean FineWeb-Edu (Alice/ELRIS Group)**
+- **Dataset:** [eliceai/korean-fineweb-edu-demo](https://huggingface.co/datasets/eliceai/korean-fineweb-edu-demo)
+- **Conteúdo:** 5% sample de 190B tokens educacionais em coreano
+- **Relevância MR_POKER:** NONE — dataset educacional, não aplicável.
+
+#### Q.3.3 Japão
+
+**Swallow LLM (Institute of Science Tokyo + AIST)**
+- **URL:** [swallow-llm.github.io](https://swallow-llm.github.io/index.en.html)
+- **Status:** 2.4M downloads de modelos, 551K downloads de datasets
+- **Relevância MR_POKER:** LOW — LLMs japoneses generalistas.
+  Transparência de receitas de treino é referência para reproducibilidade.
+
+**DEJIMA Dataset (Universidade de Tóquio)**
+- **Conteúdo:** 3.88M pares imagem-texto japonês
+- **Relevância MR_POKER:** NONE — visão-linguagem.
+
+#### Q.3.4 Índia
+
+**AIKosh Platform**
+- **URL:** [aikosh.indiaai.gov.in](https://aikosh.indiaai.gov.in/)
+- **Status:** 7,500+ datasets, 273 modelos de IA
+- **Relevância MR_POKER:** LOW — foco em governança e serviços públicos.
+  Potencial para datasets de comportamento de decisão em contextos indianos.
+- **Nota:** Sarvam-105B está disponível na AIKosh.
+
+**Sarvam AI (Vikram Series)**
+- **Modelos:** Sarvam-30B e Sarvam-105B (MoE architecture)
+- **Performance:** 128K context window, multilíngue 22 idiomas indianos
+- **URL:** [sarvam.ai/blogs/sarvam-30b-105b](https://www.sarvam.ai/blogs/sarvam-30b-105b)
+- **Relevância MR_POKER:** LOW — foco em idiomas indianos, não game theory.
+
+#### Q.3.5 Singapura
+
+**NVIDIA Nemotron-Personas-Singapore**
+- **Dataset:** [nvidia/Nemotron-Personas-Singapore](https://huggingface.co/datasets/nvidia/Nemotron-Personas-Singapore)
+- **Blog:** [Nemotron-Personas-Singapore: Co-Designed Data for Sovereign AI](https://huggingface.co/blog/nvidia/nemotron-personas-singapore)
+- **Conteúdo:** 888K personas sintéticas, 118M tokens, 38 campos por registro
+- **Licença:** CC-BY 4.0
+- **Relevância MR_POKER:** MEDIUM — modelo de geração de personas sintéticas
+  pode ser adaptado para gerar perfis de jogadores de poker sintéticos
+  (VPIP, PFR, tilt tendency, etc.) com distribuições realistas para treino.
+- **Ação:** Estudar pipeline de Probabilistic Graphical Model (PGM) da NVIDIA
+  para gerar datasets sintéticos de jogadores de poker.
+
+### Q.4 — Ranking de Prioridade para Implementação
+
+| # | Recurso | Impacto | Esforço | Prioridade |
+|---|---------|---------|---------|------------|
+| 1 | **VAD-CFR** | +2-5x convergência CFR | MÉDIO | 🔴 CRÍTICO |
+| 2 | **PokerBench Dataset** | Calibração + validação | BAIXO | 🔴 CRÍTICO |
+| 3 | **Update-Equivalence** | Decision-time planning 100x mais rápido | ALTO | 🟡 ALTO |
+| 4 | **NeuPL** | Multi-policy em 1 rede | ALTO | 🟡 ALTO |
+| 5 | **MBOM** | Opponent modeling recursivo | MÉDIO | 🟡 ALTO |
+| 6 | **NfgTransformer** | Deep CFR equivariante | ALTO | 🟢 MÉDIO |
+| 7 | **DDM (Response Time)** | Timing tells formal | BAIXO | 🟢 MÉDIO |
+| 8 | **CNN-LSTM timing** | Skill estimation | MÉDIO | 🟢 MÉDIO |
+| 9 | **Nemotron-Personas PGM** | Dados sintéticos de jogadores | MÉDIO | 🟢 MÉDIO |
+| 10 | **LLM gambling biases** | Validação de módulos | NENHUM | 🔵 BAIXO |
+
+### Q.5 — Resumo Executivo
+
+**Varredura total:** 9 plataformas, 5 países (China, Coreia, Japão, Índia, Singapura)
+
+**Achados relevantes para poker AI:**
+- 8 papers/datasets DIRETAMENTE aplicáveis
+- 7 recursos INDIRETAMENTE relevantes (behavioral/cognitive)
+- 5 plataformas com relevância LOW-MEDIUM
+
+**Top 3 descobertas de maior impacto:**
+1. **VAD-CFR (DeepMind, Fev 2026)** — Novo algoritmo CFR evoluído por IA que
+   supera DCFR+. Volatility-sensitive discounting é diretamente implementável
+   em nosso CFRTrainer.
+2. **PokerBench (UC Berkeley, Jan 2025)** — Dataset de 11K cenários GTO para
+   calibrar e validar nosso pipeline inteiro.
+3. **Update-Equivalence (Meta/CMU)** — Framework teórico para decision-time
+   planning 100x mais eficiente que subgame solving tradicional.
