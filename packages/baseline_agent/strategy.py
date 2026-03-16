@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Protocol
 
 from packages.baseline_agent.contracts import AgentDecision
@@ -9,6 +10,39 @@ from packages.engine.models import HandState
 from packages.equity.monte_carlo import estimate_equity
 from packages.evaluator.hands import best_hand_rank
 from packages.features.poker import BaselineFeatures
+
+
+@dataclass(frozen=True)
+class DecisionConfig:
+    """Tunable thresholds for the rule-based decision strategy."""
+
+    # Pre-flop thresholds
+    short_stack_bb_multiplier: int = 12
+    preflop_open_shove_equity: float = 0.62
+    preflop_open_raise_equity: float = 0.61
+    preflop_open_raise_bb: float = 3.0
+    preflop_open_playable_bb: float = 2.5
+    preflop_defend_shove_equity: float = 0.64
+    preflop_reraise_equity: float = 0.67
+    preflop_call_min_equity: float = 0.42
+    preflop_call_equity_margin: float = 0.08
+
+    # Post-flop thresholds
+    postflop_shove_equity_no_call: float = 0.65
+    postflop_bet_equity: float = 0.60
+    postflop_large_bet_equity: float = 0.68
+    postflop_large_bet_pot_fraction: float = 0.60
+    postflop_small_bet_pot_fraction: float = 0.50
+    postflop_shove_equity_facing_bet: float = 0.66
+    postflop_raise_equity: float = 0.74
+    postflop_call_equity_margin: float = 0.06
+
+    # Hand classification
+    premium_rank_threshold: int = 10
+    strong_broadway_high: int = 13
+    strong_broadway_low: int = 11
+    suited_high_threshold: int = 11
+    connected_high_threshold: int = 10
 
 
 class EquityEstimatorStrategy(Protocol):
@@ -46,6 +80,9 @@ class MonteCarloEquityEstimator:
 
 
 class RuleBasedDecisionStrategy:
+    def __init__(self, config: DecisionConfig | None = None) -> None:
+        self.cfg = config or DecisionConfig()
+
     def decide(
         self,
         *,
@@ -58,16 +95,17 @@ class RuleBasedDecisionStrategy:
         if acting_seat is None:
             raise ValueError("no acting seat to decide")
 
+        cfg = self.cfg
         player = state.players[acting_seat]
         max_raise_to = player.invested_this_round + player.stack
-        short_stack = features.stack <= 12 * state.big_blind
-        premium = features.is_pair and features.high_rank >= 10
-        strong_broadway = features.high_rank >= 13 and features.low_rank >= 11
+        short_stack = features.stack <= cfg.short_stack_bb_multiplier * state.big_blind
+        premium = features.is_pair and features.high_rank >= cfg.premium_rank_threshold
+        strong_broadway = features.high_rank >= cfg.strong_broadway_high and features.low_rank >= cfg.strong_broadway_low
         playable = (
             premium
             or strong_broadway
-            or (features.is_suited and features.high_rank >= 11)
-            or (features.is_connected and features.high_rank >= 10)
+            or (features.is_suited and features.high_rank >= cfg.suited_high_threshold)
+            or (features.is_connected and features.high_rank >= cfg.connected_high_threshold)
         )
 
         if features.board_size == 0:
@@ -104,34 +142,35 @@ class RuleBasedDecisionStrategy:
         premium: bool,
         playable: bool,
     ) -> AgentDecision:
+        cfg = self.cfg
         if features.to_call == 0:
-            if short_stack and equity >= 0.62 and ActionType.ALL_IN in legal:
+            if short_stack and equity >= cfg.preflop_open_shove_equity and ActionType.ALL_IN in legal:
                 return AgentDecision(
                     ActionType.ALL_IN,
                     features.stack,
                     "push profitable short-stack opening range",
                 )
-            if equity >= 0.61 and ActionType.BET in legal:
+            if equity >= cfg.preflop_open_raise_equity and ActionType.BET in legal:
                 return AgentDecision(
                     ActionType.BET,
-                    max(state.big_blind * 3, 6),
+                    max(int(state.big_blind * cfg.preflop_open_raise_bb), 6),
                     "open aggressively with high-equity range",
                 )
             if playable and ActionType.BET in legal:
                 return AgentDecision(
                     ActionType.BET,
-                    max(int(state.big_blind * 2.5), 4),
+                    max(int(state.big_blind * cfg.preflop_open_playable_bb), 4),
                     "open playable range",
                 )
             return AgentDecision(ActionType.CHECK, 0, "check weakest opening range")
 
-        if short_stack and equity >= 0.64 and ActionType.ALL_IN in legal:
+        if short_stack and equity >= cfg.preflop_defend_shove_equity and ActionType.ALL_IN in legal:
             return AgentDecision(
                 ActionType.ALL_IN,
                 features.stack,
                 "jam profitable short-stack defend range",
             )
-        if (premium or equity >= 0.67) and ActionType.RAISE in legal:
+        if (premium or equity >= cfg.preflop_reraise_equity) and ActionType.RAISE in legal:
             target = max(
                 state.min_raise_to or 0, state.current_bet + state.big_blind * 2
             )
@@ -146,7 +185,7 @@ class RuleBasedDecisionStrategy:
                     features.stack,
                     "convert short raise into all-in pressure",
                 )
-        if ActionType.CALL in legal and equity >= max(features.pot_odds + 0.08, 0.42):
+        if ActionType.CALL in legal and equity >= max(features.pot_odds + cfg.preflop_call_equity_margin, cfg.preflop_call_min_equity):
             return AgentDecision(
                 ActionType.CALL,
                 features.to_call,
@@ -169,19 +208,21 @@ class RuleBasedDecisionStrategy:
         short_stack: bool,
         acting_seat: int,
     ) -> AgentDecision:
+        cfg = self.cfg
         hand_rank = best_hand_rank(state.players[acting_seat].hole_cards + state.board)
         made_pair_or_better = hand_rank[0] >= 1
         if features.to_call == 0:
-            if short_stack and equity >= 0.65 and ActionType.ALL_IN in legal:
+            if short_stack and equity >= cfg.postflop_shove_equity_no_call and ActionType.ALL_IN in legal:
                 return AgentDecision(
                     ActionType.ALL_IN,
                     features.stack,
                     "jam short-stack with strong equity",
                 )
-            if (made_pair_or_better or equity >= 0.60) and ActionType.BET in legal:
+            if (made_pair_or_better or equity >= cfg.postflop_bet_equity) and ActionType.BET in legal:
+                pot_fraction = cfg.postflop_large_bet_pot_fraction if equity >= cfg.postflop_large_bet_equity else cfg.postflop_small_bet_pot_fraction
                 size = max(
                     state.big_blind,
-                    int(max(state.pot, 2) * (0.60 if equity >= 0.68 else 0.50)),
+                    int(max(state.pot, 2) * pot_fraction),
                 )
                 return AgentDecision(
                     ActionType.BET, size, "value/protection bet with equity edge"
@@ -191,13 +232,13 @@ class RuleBasedDecisionStrategy:
                     ActionType.CHECK, 0, "check medium or weak equity region"
                 )
 
-        if short_stack and equity >= 0.66 and ActionType.ALL_IN in legal:
+        if short_stack and equity >= cfg.postflop_shove_equity_facing_bet and ActionType.ALL_IN in legal:
             return AgentDecision(
                 ActionType.ALL_IN,
                 features.stack,
                 "jam short stack over continuing range",
             )
-        if equity >= 0.74 and ActionType.RAISE in legal:
+        if equity >= cfg.postflop_raise_equity and ActionType.RAISE in legal:
             target = max(
                 state.min_raise_to or 0,
                 state.current_bet + max(state.big_blind * 2, state.pot // 2),
@@ -215,7 +256,7 @@ class RuleBasedDecisionStrategy:
                     features.stack,
                     "convert capped raise into all-in value",
                 )
-        if ActionType.CALL in legal and equity >= features.pot_odds + 0.06:
+        if ActionType.CALL in legal and equity >= features.pot_odds + cfg.postflop_call_equity_margin:
             return AgentDecision(
                 ActionType.CALL, features.to_call, "continue when equity exceeds price"
             )

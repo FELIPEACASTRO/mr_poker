@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from apps.api.routers.utils import get_container
+from packages.auth.dependencies import get_current_user
+from packages.auth.models import User
 
 router = APIRouter(prefix="/v1/spots")
 
@@ -20,7 +22,7 @@ def taxonomy_catalog(request: Request) -> dict:
 
 
 @router.post("/packs/{spot_id}/instantiate")
-def instantiate_spot_pack(spot_id: str, request: Request) -> dict:
+def instantiate_spot_pack(spot_id: str, request: Request, user: User = Depends(get_current_user)) -> dict:
     container = get_container(request)
     try:
         runtime, pack = container.spot_packs.instantiate(spot_id)
@@ -32,7 +34,7 @@ def instantiate_spot_pack(spot_id: str, request: Request) -> dict:
 
 
 @router.post("/packs/{spot_id}/compare-solver-like")
-def compare_solver_like(spot_id: str, request: Request) -> dict:
+def compare_solver_like(spot_id: str, request: Request, user: User = Depends(get_current_user)) -> dict:
     container = get_container(request)
     try:
         return container.solver_labels.compare_spot_pack(spot_id)

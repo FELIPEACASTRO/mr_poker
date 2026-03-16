@@ -1,1 +1,1 @@
-from .service import RegressionSuiteService
+from .service import RegressionSuiteService as RegressionSuiteService

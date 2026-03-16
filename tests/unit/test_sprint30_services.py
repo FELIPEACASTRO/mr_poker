@@ -3,7 +3,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from services.governance_service import GovernanceService
 from services.regression_suite_service import RegressionSuiteService
 from services.deploy_service import DeployService
 from services.release_notes_service import ReleaseNotesService

@@ -5,7 +5,7 @@
 Este dossie consolida o conhecimento tecnico e funcional do `mr_poker` a partir do conteudo versionado do repositorio e da observacao do workspace local em `var/`.
 
 - Base versionada autoritativa: `git ls-files` em `2026-03-14`.
-- Contagem autoritativa atual: `367` arquivos versionados.
+- Contagem autoritativa atual: `469` arquivos versionados.
 - Reconciliacao de baseline: referencias anteriores de contagem estavam stale e foram substituidas pela contagem tracked atual do workspace.
 - Ordem de verdade aplicada: codigo > testes > contratos API/DB > README/auditorias atuais > docs historicos de sprint.
 

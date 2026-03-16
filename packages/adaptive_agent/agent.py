@@ -44,7 +44,7 @@ class AdaptiveBaselineAgent(BaselineAgent):
 
     def _observe(self, runtime) -> None:
         for event in runtime.state.actions:
-            hand_key = (runtime.state.hand_id, len(runtime.state.actions))
+            (runtime.state.hand_id, len(runtime.state.actions))
             # Counter from whole history is okay here because actions repeat deterministically once per call path.
             # We only count unseen action indexes per hand.
         # Use simpler stable summary from current runtime on each call.

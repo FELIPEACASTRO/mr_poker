@@ -1,1 +1,1 @@
-from .agent import AdaptiveBaselineAgent
+from .agent import AdaptiveBaselineAgent as AdaptiveBaselineAgent

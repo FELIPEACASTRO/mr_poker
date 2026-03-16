@@ -1,1 +1,1 @@
-from .service import ExperimentRunner
+from .service import ExperimentRunner as ExperimentRunner

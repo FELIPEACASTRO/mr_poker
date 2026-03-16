@@ -26,7 +26,11 @@ class DatasetBuilder:
         self.report_dir = Path(report_dir)
         self.report_dir.mkdir(parents=True, exist_ok=True)
 
-    def build_rows(self, include_spot_packs: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    def build_rows(
+        self,
+        include_spot_packs: list[dict[str, Any]] | None = None,
+        include_external_rows: list[dict[str, Any]] | None = None,
+    ) -> list[dict[str, Any]]:
         rows: list[dict[str, Any]] = []
         for item in self.store.get_decision_traces():
             trace = item['trace']
@@ -93,6 +97,10 @@ class DatasetBuilder:
                 'split': stable_split(source_key),
                 'source_spot_id': spot['source_spot_id'],
             })
+
+        for ext_row in include_external_rows or []:
+            rows.append(ext_row)
+
         return rows
 
     def build_manifest(self, rows: list[dict[str, Any]], *, dataset_name: str = 'master_v1') -> dict[str, Any]:

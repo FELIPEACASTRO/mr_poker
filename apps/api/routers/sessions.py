@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from apps.api.contracts import SessionRunRequest
 from apps.api.routers.utils import get_container
+from packages.auth.dependencies import get_current_user
+from packages.auth.models import User
 from services.cqrs import SessionH2HCommand
 
 router = APIRouter(prefix="/v1/sessions")
 
 
 @router.post("/h2h")
-def run_session(payload: SessionRunRequest, request: Request) -> dict:
+def run_session(payload: SessionRunRequest, request: Request, user: User = Depends(get_current_user)) -> dict:
     container = get_container(request)
     return container.command_bus.run_session_h2h(
         SessionH2HCommand(

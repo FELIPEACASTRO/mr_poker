@@ -1,1 +1,1 @@
-from .service import ReplayService
+from .service import ReplayService as ReplayService

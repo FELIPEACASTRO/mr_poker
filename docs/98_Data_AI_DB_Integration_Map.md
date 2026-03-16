@@ -60,6 +60,7 @@ Este documento canoniza:
 | `POST /v1/spots/packs/{spot_id}/compare-solver-like` | `SolverLabelService` |
 | `GET /v1/solver/catalog` | API local (`create_app`) |
 | `POST /v1/models/train/policy-table` | `ModelService` |
+| `POST /v1/models/train/pokerbench` | `ModelService` |
 | `GET /v1/models` | `ModelService` |
 | `POST /v1/models/{model_id}/evaluate` | `ModelService` |
 | `POST /v1/datasets/build` | `DatasetService` |
@@ -83,6 +84,11 @@ Este documento canoniza:
 | `GET /v1/deploy/manifest` | `DeployService` |
 | `GET /v1/release/notes` | `ReleaseNotesService` |
 | `GET /v1/system/alpha-candidate` | `AlphaCandidateService` |
+| `GET /health/live` | API local (`create_app`) |
+| `GET /health/ready` | API local (`create_app`) |
+| `GET /metrics` | API local (`create_app`) |
+| `GET /v1/tasks` | `TaskQueue` worker |
+| `GET /v1/tasks/{task_id}` | `TaskQueue` worker |
 
 ## 2. Schema SQLite local
 

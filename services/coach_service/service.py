@@ -9,11 +9,18 @@ from services.taxonomy_service import TaxonomyService
 
 
 class CoachService:
-    def __init__(self, store: SqliteHandStore) -> None:
+    def __init__(
+        self,
+        store: SqliteHandStore,
+        *,
+        analytics: SessionAnalyticsService | None = None,
+        profiles: OpponentProfileService | None = None,
+        taxonomy: TaxonomyService | None = None,
+    ) -> None:
         self.store = store
-        self.analytics = SessionAnalyticsService(store)
-        self.profiles = OpponentProfileService(store)
-        self.taxonomy = TaxonomyService(store)
+        self.analytics = analytics or SessionAnalyticsService(store)
+        self.profiles = profiles or OpponentProfileService(store)
+        self.taxonomy = taxonomy or TaxonomyService(store)
 
     def session_report(self, session_id: str) -> dict[str, Any]:
         analytics = self.analytics.session_analytics(session_id)

@@ -1,16 +1,26 @@
 services:
   api:
     build: .
-    container_name: mr_pocker_api
+    container_name: mr_poker_api
     restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8000:8000"
     environment:
       POKER_AI_DB: var/poker_ai_local.db
+      POKER_AI_ENV: local
+      POKER_AUTH_ENABLED: "false"
+      POKER_LOG_LEVEL: INFO
+      POKER_CORS_ORIGINS: "*"
+      POKER_RATE_LIMIT_RPM: "120"
     volumes:
-      - ./:/app
+      - ./var:/app/var
+    tmpfs:
+      - /tmp
     healthcheck:
-      test: ["CMD", "python", "infra/scripts/healthcheck.py"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')"]
       interval: 15s
       timeout: 5s
       retries: 5

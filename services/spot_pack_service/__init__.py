@@ -1,1 +1,1 @@
-from .service import SpotPackService
+from .service import SpotPackService as SpotPackService

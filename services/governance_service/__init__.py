@@ -1,1 +1,1 @@
-from .service import GovernanceService
+from .service import GovernanceService as GovernanceService

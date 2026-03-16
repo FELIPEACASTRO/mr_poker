@@ -1,1 +1,1 @@
-from .service import ReleaseNotesService
+from .service import ReleaseNotesService as ReleaseNotesService

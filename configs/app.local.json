@@ -2,5 +2,11 @@
   "env": "local",
   "db_path": "var/poker_ai_local.db",
   "report_dir": "var/reports",
-  "dataset_dir": "var/datasets"
+  "dataset_dir": "var/datasets",
+  "auth_enabled": false,
+  "log_level": "DEBUG",
+  "cors_origins": "*",
+  "rate_limit_rpm": 300,
+  "otel_enabled": false,
+  "base_dir": "."
 }

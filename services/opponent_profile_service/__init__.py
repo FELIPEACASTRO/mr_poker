@@ -1,1 +1,1 @@
-from .service import OpponentProfileService
+from .service import OpponentProfileService as OpponentProfileService

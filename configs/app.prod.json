@@ -1,0 +1,10 @@
+{
+  "db_path": "var/poker_ai_prod.db",
+  "auth_enabled": true,
+  "log_level": "WARNING",
+  "cors_origins": "",
+  "rate_limit_rpm": 60,
+  "otel_enabled": true,
+  "otel_endpoint": "http://otel-collector:4317",
+  "base_dir": "."
+}

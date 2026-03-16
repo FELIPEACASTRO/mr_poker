@@ -1,1 +1,1 @@
-from services.benchmark_service.service import BenchmarkService
+from services.benchmark_service.service import BenchmarkService as BenchmarkService

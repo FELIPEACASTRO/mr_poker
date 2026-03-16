@@ -2,7 +2,7 @@
 
 ## Metodo
 
-Inventario canonico baseado em `git ls-files` (`367` arquivos versionados) com apoio de leitura ancorada em linhas, headings Markdown e simbolos Python.
+Inventario canonico baseado em `git ls-files` (`469` arquivos versionados) com apoio de leitura ancorada em linhas, headings Markdown e simbolos Python.
 
 Leitura aplicada:
 
@@ -97,6 +97,7 @@ Legenda:
 | `packages/curriculum/planner.py` | codigo / `build_curriculum`@7 | gera curriculum de estudo a partir de analytics + coach; deps: `collections`, `typing`; sem IO; cobertura indireta em `test_tournament_curriculum_readiness.py` e API sprint20 |
 | `packages/dataset_builder/__init__.py` | codigo / L3 | re-export de builder |
 | `packages/dataset_builder/builder.py` | codigo / `stable_split`@14; `DatasetBuilder`@23 | constroi rows, splits e manifestos; deps: `hashlib`, `json`, `pathlib`; side effect: grava `var/datasets`; cobertura direta em `test_dataset_eval_external.py`, indireta via API sprint20/30 |
+| `packages/dataset_builder/pokerbench_adapter.py` | codigo / `PokerBenchAdapter`@273 | converte rows do HF PokerBench (574K decisoes solver) para formato JSONL do DatasetBuilder; deps: `bucketize_spot`, `classify_trace`, `stable_split`; cobertura direta em `test_pokerbench_adapter.py` |
 | `packages/engine/__init__.py` | codigo / L2 | re-export de engine/models |
 | `packages/engine/deck.py` | codigo / `Deck`@9 | baralho e draw deterministico; deps: `random`, `Card`; sem IO; cobertura direta em `test_deck.py` |
 | `packages/engine/engine.py` | codigo / `HandRuntime`@13; `GameEngine`@19 | motor de mao completo; deps: deck, models, `ActionType`; side effect: mutacao em memoria do runtime; cobertura direta em `test_engine_setup.py`, `test_engine_rounds.py`, `test_showdown.py`, `test_sidepots.py`, `test_golden_hands.py` e integracao API |
@@ -122,6 +123,10 @@ Legenda:
 | `packages/opponent_model/profile.py` | codigo / `build_opponent_profile`@11; `summarize_profile`@34 | perfil estatistico simples do oponente; deps: `collections`; sem IO; cobertura direta em `test_opponent_profile_and_coach.py`, indireta via API |
 | `packages/persistence/__init__.py` | codigo / L1 | re-export de SQLite store |
 | `packages/persistence/sqlite_store.py` | codigo / `SqliteHandStore`@9 | persistencia canonicamente versionada; deps: `sqlite3`, `json`, `pathlib`; side effects: cria schema e escreve DB; cobertura direta em `test_persistence_replay.py`, `test_store_session_traces.py`, `test_session_runner.py`, integracao API |
+| `packages/llm_agent/__init__.py` | codigo / L3 | re-export de LLMPokerAgent |
+| `packages/llm_agent/agent.py` | codigo / `LLMPokerAgent`@49 | agente poker baseado em LLM fine-tuned; deps: BaselineAgent, LLMInference, prompt builder; cobertura direta em `test_llm_agent.py` |
+| `packages/llm_agent/inference.py` | codigo / `LLMInference`@30 | wrapper lazy-loading para inferencia LLM via transformers; deps: `transformers` (opcional), `threading`; cobertura direta em `test_llm_agent.py` |
+| `packages/llm_agent/prompt.py` | codigo / `build_pokerbench_prompt`@30 | constroi prompts no formato PokerBench a partir de game state; sem deps externas; cobertura direta em `test_llm_agent.py` |
 | `packages/policy_agent/__init__.py` | codigo / L3 | re-export do policy agent |
 | `packages/policy_agent/agent.py` | codigo / `PolicyTableAgent`@9 | inferencia via tabela treinada; deps: baseline fallback, contracts, buckets solver-like; sem IO; cobertura indireta via `test_solver_like_and_models.py` e tournament/model stack |
 | `packages/policy_table/__init__.py` | codigo / L3 | re-export de trainer/registry/model |
@@ -237,6 +242,8 @@ Legenda:
 | `tests/unit/test_solver_like_and_models.py` | teste / `test_solver_like_compare_and_policy_training`@7 | cobre solver-like, trainer, registry e model service |
 | `tests/unit/test_spot_packs.py` | teste / `test_spot_pack_instantiation_reaches_expected_actor`@7 | cobre biblioteca de spot packs |
 | `tests/unit/test_sprint30_services.py` | teste / tres testes@8/15/22 | cobre deploy manifest, regression suite e release notes |
+| `tests/unit/test_train_pokerbench.py` | teste / 7 testes | cobre pipeline de treino PolicyTableModel com dados PokerBench |
+| `tests/unit/test_llm_agent.py` | teste / 23 testes | cobre LLMPokerAgent, prompt builder, action parsing e integracao tournament |
 | `tests/unit/test_store_session_traces.py` | teste / `test_store_sessions_and_traces`@5 | cobre persistencia de sessions/traces |
 | `tests/unit/test_taxonomy_and_export.py` | teste / `test_hand_taxonomy_and_export`@9; `test_session_analytics_has_taxonomy_and_edges`@42 | cobre taxonomy, export e analytics |
 | `tests/unit/test_tournament_curriculum_readiness.py` | teste / `test_tournament_curriculum_and_readiness`@11 | cobre tournament, curriculum e readiness |
@@ -426,8 +433,117 @@ Observacao semantica: o workspace local observado contem ainda `var/poker_ai_loc
 | `tests/unit/test_full_eda_extractor.py` | teste / unitario | valida extrator de EDA full I/O |
 | `var/model_cards/1f2ec7e0-416c-49f3-91f8-ed94bf4e3952.card.json` | artefato versionado / model card | metadados de governance para versao de modelo |
 
-## 9. Fechamento do inventario
+## 9. Arquivos adicionais do baseline atual
 
-- Este inventario cobre o baseline tracked atual do repositorio (`367` arquivos versionados).
+| Arquivo | Tipo / ancora | Inventario tecnico |
+| --- | --- | --- |
+| `.claude/settings.local.json` | config / JSON | configuracao local do ambiente Claude; sem impacto de runtime |
+| `apps/__init__.py` | codigo / L1 | namespace raiz do pacote apps |
+| `apps/api/__init__.py` | codigo / L1 | namespace do pacote API |
+| `apps/api/middleware/__init__.py` | codigo / L1 | namespace do pacote de middlewares |
+| `apps/api/middleware/error_handler.py` | codigo / middleware | tratamento centralizado de erros HTTP |
+| `apps/api/middleware/rate_limit.py` | codigo / middleware | limitacao de taxa de requisicoes |
+| `apps/api/middleware/request_logging.py` | codigo / middleware | logging estruturado de requisicoes HTTP |
+| `apps/api/middleware/security_headers.py` | codigo / middleware | headers de seguranca HTTP |
+| `apps/api/pagination.py` | codigo / utilitario | paginacao generica para endpoints de listagem |
+| `apps/api/response_models.py` | codigo / contratos | modelos de resposta padronizados da API |
+| `apps/api/routers/tasks.py` | codigo / router tasks | endpoints de gerenciamento de tasks assincronas |
+| `apps/api/routers/ws.py` | codigo / router websocket | endpoints de comunicacao WebSocket |
+| `apps/web_ui/src/components/ErrorBoundary.tsx` | frontend / componente | boundary de erro React para resiliencia da UI |
+| `apps/web_ui/src/components/LoadingState.tsx` | frontend / componente | indicador de carregamento reutilizavel |
+| `apps/web_ui/src/components/charts/ActionDistribution.tsx` | frontend / componente chart | grafico de distribuicao de acoes |
+| `apps/web_ui/src/components/charts/ProfitLossChart.tsx` | frontend / componente chart | grafico de lucro/perda |
+| `apps/web_ui/src/components/charts/WinRateChart.tsx` | frontend / componente chart | grafico de taxa de vitoria |
+| `apps/web_ui/src/components/poker/ActionHistory.tsx` | frontend / componente poker | historico de acoes da mao |
+| `apps/web_ui/src/components/poker/Board.tsx` | frontend / componente poker | visualizacao do board comunitario |
+| `apps/web_ui/src/components/poker/ChipStack.tsx` | frontend / componente poker | visualizacao de stack de fichas |
+| `apps/web_ui/src/components/poker/HoleCards.tsx` | frontend / componente poker | visualizacao de hole cards |
+| `apps/web_ui/src/components/poker/PlayingCard.tsx` | frontend / componente poker | carta individual visual |
+| `apps/web_ui/src/components/poker/PokerTable.tsx` | frontend / componente poker | mesa de poker visual interativa |
+| `apps/web_ui/src/components/ui/Badge.tsx` | frontend / componente UI | badge reutilizavel |
+| `apps/web_ui/src/components/ui/Button.tsx` | frontend / componente UI | botao padronizado |
+| `apps/web_ui/src/components/ui/Card.tsx` | frontend / componente UI | card container reutilizavel |
+| `apps/web_ui/src/components/ui/Modal.tsx` | frontend / componente UI | modal/dialog reutilizavel |
+| `apps/web_ui/src/components/ui/Skeleton.tsx` | frontend / componente UI | placeholder de carregamento skeleton |
+| `apps/web_ui/src/components/ui/Table.tsx` | frontend / componente UI | tabela padronizada |
+| `apps/web_ui/src/lib/api.ts` | frontend / cliente API | camada de acesso a API do backend |
+| `apps/web_ui/src/lib/theme.ts` | frontend / design | definicoes de tema e tokens visuais |
+| `configs/app.prod.json` | config / JSON | configuracao de producao da aplicacao |
+| `configs/app.test.json` | config / JSON | configuracao de teste da aplicacao |
+| `docs/architecture/README.md` | doc / indice arquitetural | indice da documentacao de arquitetura |
+| `docs/architecture/adr/001-sqlite.md` | doc / ADR | decisao de uso do SQLite como persistencia |
+| `docs/architecture/adr/002-cqrs.md` | doc / ADR | decisao de adocao do padrao CQRS |
+| `docs/architecture/adr/003-saga.md` | doc / ADR | decisao de uso do padrao Saga |
+| `docs/architecture/adr/004-jwt-auth.md` | doc / ADR | decisao de autenticacao via JWT |
+| `docs/architecture/data-model.md` | doc / autoritativo | modelo de dados arquitetural |
+| `docs/development/api-guide.md` | doc / guia tecnico | guia de desenvolvimento da API |
+| `docs/development/getting-started.md` | doc / guia tecnico | guia de inicio rapido para desenvolvedores |
+| `docs/operations/deployment.md` | doc / operacional | guia de deployment |
+| `docs/operations/monitoring.md` | doc / operacional | guia de monitoramento |
+| `docs/operations/troubleshooting.md` | doc / operacional | guia de troubleshooting |
+| `infra/scripts/perf_gate_v1.py` | script / guardrail | gate de performance v1 para validacao de baseline |
+| `infra/scripts/train_pokerbench_policy.py` | script / treino | treina PolicyTableModel a partir de dados solver do PokerBench (HuggingFace) |
+| `infra/scripts/upload_pokerbench_sft.py` | script / dados | converte PokerBench para formato chat SFT e faz upload para HuggingFace Hub |
+| `packages/__init__.py` | codigo / L1 | namespace raiz do pacote packages |
+| `packages/audit/__init__.py` | codigo / L1 | namespace do pacote de auditoria |
+| `packages/audit/logger.py` | codigo / modulo | logger especializado para auditoria |
+| `packages/auth/__init__.py` | codigo / L1 | namespace do pacote de autenticacao |
+| `packages/auth/dependencies.py` | codigo / modulo | dependencias de autenticacao para injecao |
+| `packages/auth/jwt_handler.py` | codigo / modulo | geracao e validacao de tokens JWT |
+| `packages/auth/models.py` | codigo / modulo | modelos de dados de autenticacao |
+| `packages/baseline_agent/factory.py` | codigo / modulo | factory para criacao de instancias do baseline agent |
+| `packages/baseline_agent/strategy.py` | codigo / modulo | estrategias configuráveis do baseline agent |
+| `packages/common/bounded_dict.py` | codigo / modulo | dicionario com tamanho limitado para cache |
+| `packages/config/__init__.py` | codigo / L1 | namespace do pacote de configuracao |
+| `packages/config/settings.py` | codigo / modulo | settings centralizados da aplicacao |
+| `packages/engine/exceptions.py` | codigo / modulo | excecoes customizadas do engine |
+| `packages/equity/range_equity.py` | codigo / modulo | calculo de equity por range de maos |
+| `packages/evaluation/calibration.py` | codigo / modulo | calibracao de modelos de avaliacao |
+| `packages/evaluation/metrics.py` | codigo / modulo | metricas de avaliacao de performance |
+| `packages/events/__init__.py` | codigo / L1 | namespace do pacote de eventos |
+| `packages/events/models.py` | codigo / modulo | modelos de eventos do dominio |
+| `packages/events/store.py` | codigo / modulo | store de eventos para event sourcing |
+| `packages/external_solver/api_client.py` | codigo / modulo | cliente HTTP para solver externo |
+| `packages/features/board_texture.py` | codigo / modulo | analise de textura do board |
+| `packages/features/pipeline.py` | codigo / modulo | pipeline de extracao de features |
+| `packages/features/temporal.py` | codigo / modulo | features temporais de decisao |
+| `packages/logging_config/__init__.py` | codigo / L1 | namespace do pacote de configuracao de logging |
+| `packages/logging_config/setup.py` | codigo / modulo | setup centralizado de logging |
+| `packages/metrics/__init__.py` | codigo / L1 | namespace do pacote de metricas |
+| `packages/metrics/collector.py` | codigo / modulo | coletor de metricas de runtime |
+| `packages/persistence/database.py` | codigo / modulo | camada de acesso ao banco de dados |
+| `packages/persistence/interfaces.py` | codigo / modulo | interfaces abstratas de persistencia |
+| `packages/strategy/__init__.py` | codigo / L1 | namespace do pacote de estrategia |
+| `packages/strategy/mixed.py` | codigo / modulo | estrategias mistas de decisao |
+| `packages/task_queue/__init__.py` | codigo / L1 | namespace do pacote de fila de tarefas |
+| `packages/task_queue/worker.py` | codigo / modulo | worker de processamento de tarefas assincronas |
+| `packages/tracing/__init__.py` | codigo / L1 | namespace do pacote de tracing |
+| `packages/tracing/setup.py` | codigo / modulo | setup de tracing distribuido |
+| `packages/training/__init__.py` | codigo / L1 | namespace do pacote de treinamento |
+| `packages/training/cross_validation.py` | codigo / modulo | cross-validation para modelos de policy |
+| `packages/training/trainer.py` | codigo / modulo | trainer generico para modelos |
+| `services/__init__.py` | codigo / L1 | namespace raiz do pacote services |
+| `services/cqrs/saga.py` | codigo / modulo | orquestracao de sagas CQRS |
+| `services/cqrs/saga_store.py` | codigo / modulo | persistencia de estado de sagas |
+| `services/decision_service/service.py` | codigo / modulo | servico de decisao; implementacao pendente |
+| `services/explanation_service/service.py` | codigo / modulo | servico de explicacao; implementacao pendente |
+| `services/game_orchestrator/service.py` | codigo / modulo | servico de orquestracao de jogo; implementacao pendente |
+| `tests/conftest.py` | teste / config | fixtures compartilhadas do pytest |
+| `tests/e2e/__init__.py` | teste / L1 | namespace do pacote de testes end-to-end |
+| `tests/e2e/test_full_hand_lifecycle.py` | teste / e2e | valida ciclo de vida completo de uma mao |
+| `tests/e2e/test_full_session_lifecycle.py` | teste / e2e | valida ciclo de vida completo de uma sessao |
+| `tests/property/__init__.py` | teste / L1 | namespace do pacote de testes de propriedade |
+| `tests/property/test_engine_properties.py` | teste / property-based | valida propriedades invariantes do engine |
+| `tests/unit/test_cqrs_saga.py` | teste / unitario | valida orquestracao de sagas CQRS |
+| `tests/unit/test_equity_monte_carlo_paths.py` | teste / unitario | valida caminhos do estimador de equity Monte Carlo |
+| `tests/unit/test_evaluator_hands_paths.py` | teste / unitario | valida caminhos do avaliador de maos |
+| `tests/unit/test_sqlite_store_paths.py` | teste / unitario | valida caminhos do store SQLite |
+| `var/model_cards/013272dc-fad5-4b81-9e99-3f8d124163e6.card.json` | artefato versionado / model card | metadados de governance para versao de modelo |
+| `var/model_cards/02a7d58f-345f-49da-9602-9be79805d623.card.json` | artefato versionado / model card | metadados de governance para versao de modelo |
+| `var/model_cards/0fc335da-48e8-4f16-8453-cdba697a2964.card.json` | artefato versionado / model card | metadados de governance para versao de modelo |
+
+## 10. Fechamento do inventario
+
+- Este inventario cobre o baseline tracked atual do repositorio (`469` arquivos versionados).
 - Artefatos runtime nao versionados foram auditados semanticamente, mas permanecem fora do inventario canonico do Git.
 - Para leitura arquitetural e operacional, usar este arquivo em conjunto com `docs/96_System_Knowledge_Dossier.md`, `docs/98_Data_AI_DB_Integration_Map.md` e `docs/99_Gap_and_Risk_Register.md`.

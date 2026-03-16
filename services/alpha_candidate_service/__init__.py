@@ -1,1 +1,1 @@
-from .service import AlphaCandidateService
+from .service import AlphaCandidateService as AlphaCandidateService

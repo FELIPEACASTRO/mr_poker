@@ -10,12 +10,20 @@ from services.spot_pack_service import SpotPackService
 
 
 class SolverLabelService:
-    def __init__(self, engine: GameEngine, store: SqliteHandStore) -> None:
+    def __init__(
+        self,
+        engine: GameEngine,
+        store: SqliteHandStore,
+        *,
+        labeler: SolverLikeLabeler | None = None,
+        baseline: BaselineAgent | None = None,
+        spot_packs: SpotPackService | None = None,
+    ) -> None:
         self.engine = engine
         self.store = store
-        self.labeler = SolverLikeLabeler()
-        self.baseline = BaselineAgent()
-        self.spot_packs = SpotPackService(engine=engine, store=store)
+        self.labeler = labeler or SolverLikeLabeler()
+        self.baseline = baseline or BaselineAgent()
+        self.spot_packs = spot_packs or SpotPackService(engine=engine, store=store)
 
     def normalized_spot_for_runtime(self, runtime) -> dict[str, Any]:
         base = normalize_runtime(runtime, self.engine)

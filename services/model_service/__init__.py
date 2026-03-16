@@ -1,1 +1,1 @@
-from .service import ModelService
+from .service import ModelService as ModelService

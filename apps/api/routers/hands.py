@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from apps.api.contracts import ActionRequest, BatchGenerateRequest, NewHandRequest
 from apps.api.routers.utils import get_container
+from packages.auth.dependencies import get_current_user
+from packages.auth.models import User
 
 router = APIRouter(prefix="/v1/hands")
 
 
 @router.post("/new")
-def new_hand(payload: NewHandRequest, request: Request) -> dict:
+def new_hand(payload: NewHandRequest, request: Request, user: User = Depends(get_current_user)) -> dict:
     container = get_container(request)
     runtime = container.engine.start_new_hand(
         stacks=payload.stacks,
@@ -43,7 +45,7 @@ def get_hand(hand_id: str, request: Request) -> dict:
 
 
 @router.post("/{hand_id}/actions")
-def act(hand_id: str, payload: ActionRequest, request: Request) -> dict:
+def act(hand_id: str, payload: ActionRequest, request: Request, user: User = Depends(get_current_user)) -> dict:
     container = get_container(request)
     runtime = container.runtimes.get(hand_id)
     if runtime is None:
@@ -65,7 +67,7 @@ def act(hand_id: str, payload: ActionRequest, request: Request) -> dict:
 
 
 @router.post("/{hand_id}/auto")
-def auto_act(hand_id: str, request: Request) -> dict:
+def auto_act(hand_id: str, request: Request, user: User = Depends(get_current_user)) -> dict:
     container = get_container(request)
     runtime = container.runtimes.get(hand_id)
     if runtime is None:
@@ -152,7 +154,7 @@ def review_hand(hand_id: str, request: Request) -> dict:
 
 
 @router.post("/batch-generate")
-def generate_batch(payload: BatchGenerateRequest, request: Request) -> dict:
+def generate_batch(payload: BatchGenerateRequest, request: Request, user: User = Depends(get_current_user)) -> dict:
     container = get_container(request)
     return container.batch_generation.generate(
         batch_name=payload.batch_name,

@@ -1,1 +1,1 @@
-from .service import SolverLabelService
+from .service import SolverLabelService as SolverLabelService

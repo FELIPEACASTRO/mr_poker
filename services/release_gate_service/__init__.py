@@ -1,1 +1,1 @@
-from .service import ReleaseGateService
+from .service import ReleaseGateService as ReleaseGateService

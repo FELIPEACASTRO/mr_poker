@@ -1,1 +1,1 @@
-from .service import BatchGenerationService
+from .service import BatchGenerationService as BatchGenerationService

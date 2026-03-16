@@ -3,9 +3,11 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from packages.audit.logger import AuditLogger
 from packages.baseline_agent import BaselineAgent
 from packages.engine import GameEngine, HandRuntime
-from packages.persistence import SqliteHandStore
+from packages.events.store import EventStore
+from packages.persistence import DatabaseManager, SqliteHandStore
 from services.alpha_candidate_service import AlphaCandidateService
 from services.analytics_service import SessionAnalyticsService
 from services.batch_generation_service import BatchGenerationService
@@ -13,13 +15,17 @@ from services.benchmark_service import BenchmarkService
 from services.calibration_service import CalibrationService
 from services.coach_service import CoachService
 from services.cqrs import CommandBus, QueryBus
+from services.cqrs.saga_store import SagaStore
 from services.curriculum_service import CurriculumService
 from services.dataset_service import DatasetService
+from services.decision_service.service import DecisionService
 from services.deploy_service import DeployService
 from services.evaluation_service import EvaluationService
 from services.experiment_runner import ExperimentRunner
+from services.explanation_service.service import ExplanationService
 from services.export_service import ExportService
 from services.external_solver_service import ExternalSolverService
+from services.game_orchestrator.service import GameOrchestrator
 from services.governance_service import GovernanceService
 from services.model_service import ModelService
 from services.opponent_profile_service import OpponentProfileService
@@ -37,9 +43,13 @@ from services.tournament_service import TournamentService
 
 @dataclass
 class AppContainer:
+    db: DatabaseManager
     engine: GameEngine
     agent: BaselineAgent
     store: SqliteHandStore
+    event_store: EventStore
+    saga_store: SagaStore
+    audit: AuditLogger
     replay: ReplayService
     benchmark: BenchmarkService
     experiments: ExperimentRunner
@@ -66,17 +76,23 @@ class AppContainer:
     deploy: DeployService
     release_notes: ReleaseNotesService
     alpha_candidate: AlphaCandidateService
+    decision_service: DecisionService
+    explanation_service: ExplanationService
+    game_orchestrator: GameOrchestrator
     command_bus: CommandBus
     query_bus: QueryBus
     runtimes: dict[str, HandRuntime]
 
 
 def build_container(db_path: str | None = None, base_dir: str = ".") -> AppContainer:
+    resolved_path = db_path or os.getenv("POKER_AI_DB", "var/poker_ai_local.db")
+    db = DatabaseManager(resolved_path)
     engine = GameEngine()
     agent = BaselineAgent()
-    store = SqliteHandStore(
-        db_path or os.getenv("POKER_AI_DB", "var/poker_ai_local.db")
-    )
+    store = SqliteHandStore(db=db)
+    event_store = EventStore(db=db)
+    saga_store = SagaStore(db=db)
+    audit = AuditLogger(db=db)
     replay = ReplayService(store=store, engine=engine)
     benchmark = BenchmarkService(engine=engine)
     experiments = ExperimentRunner(engine=engine)
@@ -85,10 +101,17 @@ def build_container(db_path: str | None = None, base_dir: str = ".") -> AppConta
     taxonomy = TaxonomyService(store=store)
     analytics = SessionAnalyticsService(store=store)
     exports = ExportService(store=store)
-    solver_labels = SolverLabelService(engine=engine, store=store)
+    solver_labels = SolverLabelService(
+        engine=engine, store=store, spot_packs=spot_packs
+    )
     models = ModelService(solver_labels=solver_labels)
     opponent_profiles = OpponentProfileService(store=store, engine=engine)
-    coach = CoachService(store=store)
+    coach = CoachService(
+        store=store,
+        analytics=analytics,
+        profiles=opponent_profiles,
+        taxonomy=taxonomy,
+    )
     datasets = DatasetService(store=store, solver_labels=solver_labels)
     evaluation = EvaluationService(model_registry=models.registry)
     external_solver = ExternalSolverService(solver_labels=solver_labels)
@@ -107,6 +130,11 @@ def build_container(db_path: str | None = None, base_dir: str = ".") -> AppConta
         governance=governance,
         deploy=deploy,
     )
+    decision_service = DecisionService(engine=engine, default_agent=agent)
+    explanation_service = ExplanationService(store=store)
+    game_orchestrator = GameOrchestrator(
+        engine=engine, store=store, decision_service=decision_service
+    )
     command_bus = CommandBus(
         sessions=sessions,
         benchmark=benchmark,
@@ -124,9 +152,13 @@ def build_container(db_path: str | None = None, base_dir: str = ".") -> AppConta
     )
 
     return AppContainer(
+        db=db,
         engine=engine,
         agent=agent,
         store=store,
+        event_store=event_store,
+        saga_store=saga_store,
+        audit=audit,
         replay=replay,
         benchmark=benchmark,
         experiments=experiments,
@@ -153,6 +185,9 @@ def build_container(db_path: str | None = None, base_dir: str = ".") -> AppConta
         deploy=deploy,
         release_notes=release_notes,
         alpha_candidate=alpha_candidate,
+        decision_service=decision_service,
+        explanation_service=explanation_service,
+        game_orchestrator=game_orchestrator,
         command_bus=command_bus,
         query_bus=query_bus,
         runtimes={},

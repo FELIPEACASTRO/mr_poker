@@ -1,1 +1,1 @@
-from .service import CoachService
+from .service import CoachService as CoachService

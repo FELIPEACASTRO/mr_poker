@@ -3,9 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
-from services.experiment_runner.service import ExperimentConfig
-from services.session_service.service import SessionConfig
+from packages.persistence import SqliteHandStore
+from services.analytics_service import SessionAnalyticsService
+from services.benchmark_service import BenchmarkService
+from services.experiment_runner.service import ExperimentConfig, ExperimentRunner
+from services.model_service import ModelService
+from services.opponent_profile_service import OpponentProfileService
+from services.session_service.service import SessionConfig, SessionRunner
 from services.cqrs.saga import InProcessSaga, SagaStep
+from services.tournament_service import TournamentService
 
 
 @dataclass(frozen=True)
@@ -52,11 +58,11 @@ class CommandBus:
     def __init__(
         self,
         *,
-        sessions: Any,
-        benchmark: Any,
-        experiments: Any,
-        opponent_profiles: Any,
-        tournaments: Any,
+        sessions: SessionRunner,
+        benchmark: BenchmarkService,
+        experiments: ExperimentRunner,
+        opponent_profiles: OpponentProfileService,
+        tournaments: TournamentService,
     ) -> None:
         self._sessions = sessions
         self._benchmark = benchmark
@@ -188,12 +194,12 @@ class QueryBus:
     def __init__(
         self,
         *,
-        store: Any,
-        analytics: Any,
-        readiness: Any,
-        alpha_candidate: Any,
-        models: Any,
-        datasets: Any,
+        store: SqliteHandStore,
+        analytics: SessionAnalyticsService,
+        readiness: Any,  # ReadinessService has no shared interface yet
+        alpha_candidate: Any,  # AlphaCandidateService has no shared interface yet
+        models: ModelService,
+        datasets: Any,  # DatasetService has no shared interface yet
     ) -> None:
         self._store = store
         self._analytics = analytics

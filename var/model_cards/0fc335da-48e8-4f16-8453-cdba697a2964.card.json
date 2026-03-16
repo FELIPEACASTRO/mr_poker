@@ -1,0 +1,80 @@
+{
+  "model_id": "0fc335da-48e8-4f16-8453-cdba697a2964",
+  "metadata": {
+    "model_name": "policy_table_20260315T155253",
+    "row_count": 4,
+    "bucket_count": 4,
+    "trainer": "PolicyTableTrainer"
+  },
+  "training_artifact_path": "var\\models\\0fc335da-48e8-4f16-8453-cdba697a2964.json",
+  "latest_evaluation": {
+    "model_id": "0fc335da-48e8-4f16-8453-cdba697a2964",
+    "dataset_id": "f049f64d-a394-4842-a9bb-db79a195c3a0",
+    "split": "all",
+    "rows": 4,
+    "accuracy": 1.0,
+    "split_accuracy": {
+      "test": 1.0,
+      "validation": 1.0,
+      "train": 1.0
+    },
+    "taxonomy_accuracy": {
+      "3bet_or_jam": 1.0,
+      "defend_blind": 1.0,
+      "preflop": 1.0,
+      "priced_continue_positive_edge": 1.0,
+      "cbet": 1.0,
+      "flop": 1.0,
+      "high_card_pressure": 1.0,
+      "barrel": 1.0,
+      "turn": 1.0,
+      "river": 1.0,
+      "showdown_path": 1.0
+    },
+    "confusion": {
+      "raise": {
+        "raise": 1
+      },
+      "bet": {
+        "bet": 2
+      },
+      "check": {
+        "check": 1
+      }
+    },
+    "confidence_bins": [
+      {
+        "bin": "0.0-0.2",
+        "count": 0,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.2-0.4",
+        "count": 0,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.4-0.6",
+        "count": 0,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.6-0.8",
+        "count": 0,
+        "accuracy": 0.0
+      },
+      {
+        "bin": "0.8-1.0",
+        "count": 4,
+        "accuracy": 1.0
+      }
+    ]
+  },
+  "intended_use": "local-first heads-up NLHE baseline/adaptive research workflow",
+  "limitations": [
+    "Not a real-time external solver.",
+    "Current policy table is a lightweight local model, not a production strategic core.",
+    "Evaluation metrics are local proxies and dataset-scoped."
+  ],
+  "safety_scope": "For local sandbox, coaching, replay and research workflows only."
+}

@@ -1,1 +1,1 @@
-from .service import DeployService
+from .service import DeployService as DeployService

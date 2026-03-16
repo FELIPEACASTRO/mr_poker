@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from packages.common.types import ActionType, Street
 
@@ -48,6 +47,7 @@ class ActionEvent:
     amount: int = 0
     street: Street = Street.PRE_FLOP
     note: str = ""
+    timestamp: float = 0.0
 
 
 @dataclass
@@ -57,17 +57,17 @@ class HandState:
     street: Street
     pot: int
     to_call: int
-    min_raise_to: Optional[int]
+    min_raise_to: int | None
     board: list[Card] = field(default_factory=list)
     actions: list[ActionEvent] = field(default_factory=list)
     players: dict[int, PlayerState] = field(default_factory=dict)
     small_blind: int = 1
     big_blind: int = 2
     current_bet: int = 0
-    acting_seat: Optional[int] = None
-    street_starting_seat: Optional[int] = None
-    last_aggressor_seat: Optional[int] = None
+    acting_seat: int | None = None
+    street_starting_seat: int | None = None
+    last_aggressor_seat: int | None = None
     acted_this_street: set[int] = field(default_factory=set)
-    winner_seat: Optional[int] = None
+    winner_seat: int | None = None
     is_terminal: bool = False
     showdown_reached: bool = False

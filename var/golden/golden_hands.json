@@ -98,5 +98,283 @@
       "seat0_stack": 20,
       "seat1_stack": 20
     }
+  },
+  {
+    "name": "preflop_all_in_short_stack_aces_vs_queens",
+    "stacks": [
+      10,
+      10
+    ],
+    "button_seat": 0,
+    "deck_prefix": [
+      "Ac",
+      "Qd",
+      "Ad",
+      "Qh",
+      "2d",
+      "7h",
+      "9c",
+      "Jd",
+      "3s",
+      "4c",
+      "5d",
+      "8h"
+    ],
+    "actions": [
+      {
+        "action_type": "all_in",
+        "amount": 0
+      },
+      {
+        "action_type": "call",
+        "amount": 0
+      }
+    ],
+    "expected": {
+      "winner_seat": 0,
+      "terminal": true,
+      "seat0_stack": 20,
+      "seat1_stack": 0
+    }
+  },
+  {
+    "name": "river_bluff_catch_ak_vs_98",
+    "stacks": [
+      50,
+      50
+    ],
+    "button_seat": 0,
+    "deck_prefix": [
+      "Ah",
+      "9c",
+      "Kh",
+      "8c",
+      "Td",
+      "5d",
+      "2s",
+      "3h",
+      "Qd",
+      "7s",
+      "4c",
+      "7d"
+    ],
+    "actions": [
+      {
+        "action_type": "call",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "bet",
+        "amount": 4
+      },
+      {
+        "action_type": "call",
+        "amount": 0
+      }
+    ],
+    "expected": {
+      "winner_seat": 0,
+      "terminal": true,
+      "seat0_stack": 56,
+      "seat1_stack": 44
+    }
+  },
+  {
+    "name": "check_raise_on_flop_seat1_wins",
+    "stacks": [
+      100,
+      100
+    ],
+    "button_seat": 0,
+    "deck_prefix": [
+      "Ks",
+      "Ah",
+      "Kd",
+      "Ac",
+      "Td",
+      "5d",
+      "2s",
+      "3h"
+    ],
+    "actions": [
+      {
+        "action_type": "call",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "bet",
+        "amount": 2
+      },
+      {
+        "action_type": "raise",
+        "amount": 6
+      },
+      {
+        "action_type": "fold",
+        "amount": 0
+      }
+    ],
+    "expected": {
+      "winner_seat": 1,
+      "terminal": true,
+      "seat0_stack": 96,
+      "seat1_stack": 104
+    }
+  },
+  {
+    "name": "min_raise_preflop_then_check_down",
+    "stacks": [
+      100,
+      100
+    ],
+    "button_seat": 0,
+    "deck_prefix": [
+      "Ah",
+      "9c",
+      "Ad",
+      "8c",
+      "Td",
+      "5d",
+      "2s",
+      "3h",
+      "Qd",
+      "7s",
+      "4c",
+      "7d"
+    ],
+    "actions": [
+      {
+        "action_type": "raise",
+        "amount": 4
+      },
+      {
+        "action_type": "raise",
+        "amount": 6
+      },
+      {
+        "action_type": "call",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      }
+    ],
+    "expected": {
+      "winner_seat": 0,
+      "terminal": true,
+      "seat0_stack": 106,
+      "seat1_stack": 94
+    }
+  },
+  {
+    "name": "split_pot_board_plays_royal_straight",
+    "stacks": [
+      50,
+      50
+    ],
+    "button_seat": 0,
+    "deck_prefix": [
+      "2c",
+      "2d",
+      "3c",
+      "3d",
+      "4h",
+      "As",
+      "Ks",
+      "Qs",
+      "5h",
+      "Js",
+      "6h",
+      "Ts"
+    ],
+    "actions": [
+      {
+        "action_type": "call",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      },
+      {
+        "action_type": "check",
+        "amount": 0
+      }
+    ],
+    "expected": {
+      "winner_seat": null,
+      "terminal": true,
+      "seat0_stack": 50,
+      "seat1_stack": 50
+    }
   }
 ]

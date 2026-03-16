@@ -27,3 +27,4 @@ data/checkpoints/
 apps/web_ui/*.tsbuildinfo
 apps/web_ui/vite.config.js
 apps/web_ui/vite.config.d.ts
+.claude/settings.local.json

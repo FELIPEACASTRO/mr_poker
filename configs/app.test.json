@@ -1,0 +1,9 @@
+{
+  "db_path": ":memory:",
+  "auth_enabled": false,
+  "log_level": "WARNING",
+  "cors_origins": "*",
+  "rate_limit_rpm": 9999,
+  "otel_enabled": false,
+  "base_dir": "."
+}

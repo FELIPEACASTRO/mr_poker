@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
+from typing import Any
 
 
 class ReleaseNotesService:
@@ -20,4 +22,25 @@ class ReleaseNotesService:
                 'Final handoff documentation pack for local-to-alpha transition',
             ],
             'latest_docs': latest,
+        }
+
+    def generate_changelog(self, *, since_tag: str | None = None) -> dict[str, Any]:
+        """Generate changelog from git history."""
+        commits: list[str] = []
+        try:
+            cmd = ['git', 'log', '--oneline', '-50']
+            if since_tag:
+                cmd = ['git', 'log', '--oneline', f'{since_tag}..HEAD']
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=10, check=False
+            )
+            if result.returncode == 0:
+                commits = [line.strip() for line in result.stdout.strip().splitlines() if line.strip()]
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+        return {
+            'since': since_tag or 'last 50 commits',
+            'commit_count': len(commits),
+            'commits': commits,
         }

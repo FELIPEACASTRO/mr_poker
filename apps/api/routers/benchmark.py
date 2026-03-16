@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from apps.api.contracts import (
     AdaptiveBenchmarkRequest,
@@ -9,6 +9,8 @@ from apps.api.contracts import (
     TournamentRequest,
 )
 from apps.api.routers.utils import get_container
+from packages.auth.dependencies import require_write
+from packages.auth.models import User
 from services.cqrs import (
     AdaptiveBenchmarkCommand,
     BenchmarkH2HCommand,
@@ -20,8 +22,9 @@ router = APIRouter(prefix="/v1")
 
 
 @router.post("/benchmark/smoke")
-def smoke_benchmark(payload: SmokeBenchmarkRequest, request: Request) -> dict:
+def smoke_benchmark(payload: SmokeBenchmarkRequest, request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
+    container.audit.log_access(user.username, "/v1/benchmark/smoke", "run")
     return container.command_bus.run_smoke_benchmark(
         SmokeBenchmarkCommand(
             num_hands=payload.num_hands,
@@ -32,8 +35,9 @@ def smoke_benchmark(payload: SmokeBenchmarkRequest, request: Request) -> dict:
 
 
 @router.post("/benchmark/h2h")
-def h2h_benchmark(payload: H2HBenchmarkRequest, request: Request) -> dict:
+def h2h_benchmark(payload: H2HBenchmarkRequest, request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
+    container.audit.log_access(user.username, "/v1/benchmark/h2h", "run")
     return container.command_bus.run_h2h_benchmark(
         BenchmarkH2HCommand(
             num_matches=payload.num_matches,
@@ -45,7 +49,7 @@ def h2h_benchmark(payload: H2HBenchmarkRequest, request: Request) -> dict:
 
 
 @router.post("/experiments/run")
-def run_experiment(payload: H2HBenchmarkRequest, request: Request) -> dict:
+def run_experiment(payload: H2HBenchmarkRequest, request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
     return container.command_bus.run_experiment_h2h(
         BenchmarkH2HCommand(
@@ -58,7 +62,7 @@ def run_experiment(payload: H2HBenchmarkRequest, request: Request) -> dict:
 
 
 @router.post("/benchmark/adaptive")
-def run_adaptive_benchmark(payload: AdaptiveBenchmarkRequest, request: Request) -> dict:
+def run_adaptive_benchmark(payload: AdaptiveBenchmarkRequest, request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
     return container.command_bus.run_adaptive_benchmark(
         AdaptiveBenchmarkCommand(
@@ -70,7 +74,7 @@ def run_adaptive_benchmark(payload: AdaptiveBenchmarkRequest, request: Request) 
 
 
 @router.post("/tournaments/round-robin")
-def round_robin(payload: TournamentRequest, request: Request) -> dict:
+def round_robin(payload: TournamentRequest, request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
     try:
         return container.command_bus.run_round_robin(

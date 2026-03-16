@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import logging
+
 from services.evaluation_service import EvaluationService
+
+logger = logging.getLogger(__name__)
 
 
 class CalibrationService:
@@ -21,7 +25,8 @@ class CalibrationService:
             try:
                 lo, hi = label.split('-')
                 conf = (float(lo) + float(hi)) / 2.0
-            except Exception:
+            except (ValueError, TypeError) as exc:
+                logger.debug("Failed to parse bin label %r: %s", label, exc)
                 conf = float(stats.get('avg_confidence', 0.0))
             acc = float(stats.get('accuracy', 0.0))
             weighted_gap += abs(conf - acc) * count

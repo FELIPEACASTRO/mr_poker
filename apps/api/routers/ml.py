@@ -1,16 +1,38 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from apps.api.routers.utils import get_container
+from packages.auth.dependencies import require_write
+from packages.auth.models import User
 
 router = APIRouter(prefix="/v1")
 
 
 @router.post("/models/train/policy-table")
-def train_policy_table(request: Request) -> dict:
+def train_policy_table(request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
+    container.audit.log_access(user.username, "/v1/models/train/policy-table", "train")
     return container.models.train_policy_table()
+
+
+@router.post("/models/train/pokerbench")
+def train_pokerbench(
+    request: Request,
+    max_rows: int = 0,
+    equity_samples: int = 0,
+    model_name: str | None = None,
+    config: str = "easy",
+    user: User = Depends(require_write),
+) -> dict:
+    container = get_container(request)
+    container.audit.log_access(user.username, "/v1/models/train/pokerbench", "train")
+    return container.models.train_policy_table_from_pokerbench(
+        max_rows=max_rows,
+        equity_samples=equity_samples,
+        model_name=model_name,
+        config=config,
+    )
 
 
 @router.get("/models")
@@ -20,7 +42,7 @@ def list_models(request: Request) -> dict:
 
 
 @router.post("/models/{model_id}/evaluate")
-def evaluate_model(model_id: str, request: Request) -> dict:
+def evaluate_model(model_id: str, request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
     try:
         return container.models.evaluate_model_on_spot_packs(model_id)
@@ -29,7 +51,7 @@ def evaluate_model(model_id: str, request: Request) -> dict:
 
 
 @router.post("/datasets/build")
-def build_dataset(request: Request, dataset_name: str = "master_v1") -> dict:
+def build_dataset(request: Request, dataset_name: str = "master_v1", user: User = Depends(require_write)) -> dict:
     container = get_container(request)
     return container.datasets.build_master_dataset(dataset_name=dataset_name)
 
@@ -41,11 +63,12 @@ def list_datasets(request: Request) -> dict:
 
 
 @router.post("/models/{model_id}/evaluate-dataset/{dataset_id}")
-def evaluate_model_dataset(
+def evaluate_model_dataset(  # noqa: PLR0913
     model_id: str,
     dataset_id: str,
     request: Request,
     split: str | None = None,
+    user: User = Depends(require_write),
 ) -> dict:
     container = get_container(request)
     try:
@@ -62,6 +85,7 @@ def calibrate_model(
     dataset_id: str,
     request: Request,
     split: str | None = None,
+    user: User = Depends(require_write),
 ) -> dict:
     container = get_container(request)
     try:
@@ -92,7 +116,7 @@ def external_solver_catalog(request: Request) -> dict:
 
 
 @router.post("/external-solver/{solver_name}/compare/{spot_id}")
-def compare_external_solver(solver_name: str, spot_id: str, request: Request) -> dict:
+def compare_external_solver(solver_name: str, spot_id: str, request: Request, user: User = Depends(require_write)) -> dict:
     container = get_container(request)
     try:
         return container.external_solver.compare_spot_pack(solver_name, spot_id)
