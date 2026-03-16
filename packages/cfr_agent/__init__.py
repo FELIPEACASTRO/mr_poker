@@ -31,6 +31,7 @@ from packages.cfr_agent.nfsp import NFSPAgent
 from packages.cfr_agent.neupl import NeuPLNetwork, NeuPLPopulation, PopulationPolicy
 from packages.cfr_agent.update_equiv import MirrorDescentRefiner, DecisionTimePlanner
 from packages.cfr_agent.nfg_transformer import NfgTransformer, NfgTransformerBlock
+from packages.cfr_agent.pdcfr_plus import PDCFRPlusTrainer, PDCFRPlusState
 
 __all__ = [
     "CFRAgent",
@@ -59,4 +60,6 @@ __all__ = [
     "DecisionTimePlanner",
     "NfgTransformer",
     "NfgTransformerBlock",
+    "PDCFRPlusTrainer",
+    "PDCFRPlusState",
 ]

@@ -1,0 +1,13 @@
+{
+  "model_type": "skill_estimator",
+  "skill_window_size": 20,
+  "skill_conv_channels": 16,
+  "skill_lstm_hidden": 16,
+  "skill_epochs": 100,
+  "skill_learning_rate": 0.01,
+  "seed": 42,
+  "checkpoint_interval": 25,
+  "eval_interval": 10,
+  "log_interval": 5,
+  "output_dir": "var/models/skill_estimator"
+}

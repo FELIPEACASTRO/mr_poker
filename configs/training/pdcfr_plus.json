@@ -1,0 +1,14 @@
+{
+  "model_type": "pdcfr_plus",
+  "cfr_iterations": 10000,
+  "cfr_mode": "dcfr",
+  "pdcfr_prediction_weight": 1.0,
+  "small_blind": 1,
+  "big_blind": 2,
+  "starting_stack": 100,
+  "seed": 42,
+  "checkpoint_interval": 1000,
+  "eval_interval": 500,
+  "log_interval": 100,
+  "output_dir": "var/models/pdcfr_plus"
+}

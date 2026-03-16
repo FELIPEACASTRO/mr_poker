@@ -16,6 +16,11 @@ from .mbom import RecursiveModeler, OpponentModel as MBOMOpponentModel, BeliefSt
 from .ddm_timing import DDMEstimator, DDMParameters, PreferenceEstimate
 from .skill_estimator import OnlineSkillEstimator, SkillEstimatorModel, SkillEstimate, EnhancedSkillEstimator, BayesianSkillTracker, BidirectionalLSTM
 from .synthetic_players import SyntheticPlayerGenerator, SyntheticPlayer, SyntheticPlayerStats, PersonalityProfile
+from .exploit_framework import PlayingThePlayer, ExploitProfile, ExploitStrategy
+from .consistent_model import ConsistentOpponentModel, OpponentBelief
+from .openskill_rating import OpenSkillRating, PlayerRating, MatchResult
+from .theory_of_mind import TheoryOfMind, ToMLevel, BeliefAboutUs, ToMPrediction
+from .responsible_gaming import ResponsibleGamingMonitor, RiskLevel, RiskAlert, RiskIndicators, SessionLimits
 
 __all__ = [
     "build_opponent_profile",
@@ -56,4 +61,21 @@ __all__ = [
     "SyntheticPlayer",
     "SyntheticPlayerStats",
     "PersonalityProfile",
+    "PlayingThePlayer",
+    "ExploitProfile",
+    "ExploitStrategy",
+    "ConsistentOpponentModel",
+    "OpponentBelief",
+    "OpenSkillRating",
+    "PlayerRating",
+    "MatchResult",
+    "TheoryOfMind",
+    "ToMLevel",
+    "BeliefAboutUs",
+    "ToMPrediction",
+    "ResponsibleGamingMonitor",
+    "RiskLevel",
+    "RiskAlert",
+    "RiskIndicators",
+    "SessionLimits",
 ]
