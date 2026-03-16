@@ -18,7 +18,17 @@
 | LLM Agent (PokerBench prompt) | ✅ Implementado | 3 testes |
 | SFT Training (Kaggle GPU) | 🔄 Em execução | kernel rodando |
 | Dataset HF (pokerbench-sft-chat) | ✅ Publicado | felipesp1983/pokerbench-sft-chat |
-| **Total de Testes** | **700/700** | **todos passando** |
+| Behavior Prediction (cross-entropy) | ✅ Implementado | 6 testes |
+| Particle Filter (SMC, 8 arcétipos) | ✅ Otimizado | 5 testes |
+| Tilt Detector | ✅ Implementado | 7 testes |
+| Timing Tells | ✅ Implementado | 7 testes |
+| Sizing Tells | ✅ Implementado | 7 testes |
+| Cognitive Bias Exploiter | ✅ Implementado | 7 testes |
+| Positional Profiler | ✅ Implementado | 6 testes |
+| Street Patterns | ✅ Implementado | 7 testes |
+| Meta-Game Tracker | ✅ Implementado | 7 testes |
+| Fatigue Model | ✅ Implementado | 6 testes |
+| **Total de Testes** | **1203/1203** | **todos passando** |
 
 ---
 
@@ -1077,3 +1087,121 @@ Ação Observada
 - **60 testes** em `tests/unit/test_batch11_behavior.py`
 - Cobertura: todas as classes públicas, todos os estados, integração cross-module
 - Sem mocks/stubs — exercitam implementação real
+
+---
+
+## O. MELHORIAS AVANÇADAS — Baseadas em Pesquisa External (2026-03-16)
+
+> Fontes: deepcfr-poker (PyPI), deepcfr-6maxNLHE (GitHub), ReBeL (Meta Research),
+> RLCard, PokerRL, Stanford CS224R, AlphaHoldem, aiagentstore.ai (análise completa)
+
+### O.1. Análise de Plataformas Externas
+
+| Plataforma | Resultado | Utilidade para MR_POKER |
+|-----------|-----------|------------------------|
+| aiagentstore.ai (Premium) | 1280 agentes, foco em automação/SEO/crypto | ❌ Nenhum agente de poker/RL/game theory |
+| deepcfr-poker (PyPI v0.3.0) | Deep CFR + Opponent Modeling + RNN | ✅ Técnicas diretamente aplicáveis |
+| deepcfr-6maxNLHE (GitHub) | 6-player NLHE com dual networks | ✅ Arquitetura de referência |
+| ReBeL (Meta) | Public Belief State + RL+Search | ✅ Algoritmo estado-da-arte |
+| RLCard / PokerRL | Frameworks com CFR/NFSP/Deep CFR | ✅ Benchmarks e comparação |
+
+### O.2. Roadmap de Implementação — 6 Fases
+
+#### Fase 1: Melhorias Imediatas (Impacto Alto, Esforço Baixo)
+**Prazo estimado: 1-2 dias | Prioridade: CRÍTICA**
+
+| # | Melhoria | Fonte | Arquivo Alvo | Impacto |
+|---|---------|-------|-------------|---------|
+| 44 | **Linear CFR Weighting** | deepcfr-6maxNLHE | `packages/cfr_agent/trainer.py` | Convergência 2-3x mais rápida — iterações recentes têm peso maior que anteriores |
+| 45 | **Huber Loss no Advantage Network** | deepcfr-poker | `packages/cfr_agent/deep_cfr.py` | Robustez a outliers — substitui MSE por Huber loss no treino |
+| 46 | **Gradient Clipping** | deepcfr-6maxNLHE | `packages/cfr_agent/deep_cfr.py` | Estabilidade — evita explosão de gradientes em treinos longos |
+| 47 | **Weight Decay (L2)** | deepcfr-poker | `packages/cfr_agent/deep_cfr.py` | Regularização — previne overfitting com 1e-5 decay |
+
+#### Fase 2: Opponent Modeling Avançado (Impacto Muito Alto, Esforço Médio)
+**Prazo estimado: 2-3 dias | Prioridade: ALTA**
+
+| # | Melhoria | Fonte | Arquivo Alvo | Impacto |
+|---|---------|-------|-------------|---------|
+| 48 | **GRU-based Action History Encoder** | deepcfr-poker | `packages/opponent_model/behavior_prediction.py` | +10-15% acurácia — substitui sliding window por GRU que captura dependências temporais longas |
+| 49 | **Dual Network (Advantage + Strategy)** | deepcfr-6maxNLHE | `packages/cfr_agent/deep_cfr.py` | Separação de responsabilidades — rede de regret vs. rede de estratégia |
+| 50 | **Per-Opponent Adaptation Layer** | deepcfr-poker | `packages/opponent_model/particle_filter.py` | Modelos individualizados por oponente em vez de arquétipo genérico |
+
+#### Fase 3: State Representation Enriquecida (Impacto Alto, Esforço Médio)
+**Prazo estimado: 2-3 dias | Prioridade: ALTA**
+
+| # | Melhoria | Fonte | Arquivo Alvo | Impacto |
+|---|---------|-------|-------------|---------|
+| 51 | **500-dim State Vector** | deepcfr-6maxNLHE | `packages/cfr_agent/deep_cfr.py` | Representação muito mais rica — cards one-hot (104d) + game stage (5d) + pot/positions + action history |
+| 52 | **Legal Action Masking** | deepcfr-6maxNLHE | `packages/cfr_agent/deep_cfr.py` | Impede rede de propor ações ilegais — multiplica output por mask binária |
+| 53 | **Card Abstraction Melhorada** | AlphaHoldem | `packages/cfr_agent/card_abstraction.py` | Agrupamento isomórfico de mãos por suit-equivalence reduz info sets |
+
+#### Fase 4: Training Pipeline Avançado (Impacto Alto, Esforço Alto)
+**Prazo estimado: 3-5 dias | Prioridade: MÉDIA-ALTA**
+
+| # | Melhoria | Fonte | Arquivo Alvo | Impacto |
+|---|---------|-------|-------------|---------|
+| 54 | **Mixed Checkpoint Self-Play** | deepcfr-poker | `packages/cfr_agent/trainer.py` | Pool de 5+ checkpoints rotativos evita overfitting a um estilo específico |
+| 55 | **Experience Replay Buffer (200K)** | deepcfr-6maxNLHE | `packages/cfr_agent/deep_cfr.py` | Buffers maiores com prioridade de amostragem melhoram eficiência de dados |
+| 56 | **Importance Sampling para CFR** | deepcfr-poker | `packages/cfr_agent/trainer.py` | Amostragem ponderada otimiza eficiência computacional |
+| 57 | **TensorBoard Logging** | deepcfr-6maxNLHE | `packages/cfr_agent/deep_cfr.py` | Monitoramento em tempo real de loss, exploitability, convergência |
+
+#### Fase 5: Algoritmos Estado-da-Arte (Impacto Transformativo, Esforço Muito Alto)
+**Prazo estimado: 5-10 dias | Prioridade: MÉDIA**
+
+| # | Melhoria | Fonte | Arquivo Alvo | Impacto |
+|---|---------|-------|-------------|---------|
+| 58 | **Public Belief State (PBS)** | ReBeL (Meta) | NOVO: `packages/cfr_agent/rebel.py` | Trata jogos de informação imperfeita como perfeita via distribuição de crenças — derrotou profissionais em HUNL |
+| 59 | **RL + Search Combinado** | ReBeL (Meta) | NOVO: `packages/cfr_agent/rebel.py` | Busca em tempo real no espaço de PBS durante o jogo, convergência provada para Nash |
+| 60 | **Neural Fictitious Self-Play (NFSP)** | PokerRL | NOVO: `packages/cfr_agent/nfsp.py` | Alternativa ao CFR — combina RL (best response) + SL (average strategy) |
+| 61 | **AlphaHoldem End-to-End RL** | AlphaHoldem (AAAI) | NOVO: `packages/cfr_agent/alpha_holdem.py` | RL end-to-end com 2.9ms/decisão — 1000x mais rápido que DeepStack |
+
+#### Fase 6: Integração e Benchmark (Esforço Médio)
+**Prazo estimado: 2-3 dias | Prioridade: ALTA (após fases 1-4)**
+
+| # | Melhoria | Fonte | Arquivo Alvo | Impacto |
+|---|---------|-------|-------------|---------|
+| 62 | **Benchmark vs RLCard agents** | RLCard | NOVO: `benchmarks/vs_rlcard.py` | Comparação objetiva contra agentes de referência |
+| 63 | **Multi-Agent Tournament** | deepcfr-poker | NOVO: `benchmarks/tournament.py` | Round-robin entre CFR, Deep CFR, NFSP, LLM, baseline |
+| 64 | **ONNX Export** | deepcfr-poker roadmap | `packages/cfr_agent/deep_cfr.py` | Deploy do modelo treinado em formato portátil |
+| 65 | **Exploitability Measurement** | Padrão acadêmico | NOVO: `benchmarks/exploitability.py` | Mede distância do Nash em mBB/hand |
+
+### O.3. Matriz de Prioridade
+
+```
+                    IMPACTO
+              Baixo    Médio    Alto     Muito Alto
+         ┌─────────┬─────────┬─────────┬──────────┐
+  Baixo  │  57     │ 46,47   │ 44,45   │          │
+ESFORÇO  ├─────────┼─────────┼─────────┼──────────┤
+  Médio  │         │ 52,53   │ 48,51   │ 49,50    │
+         ├─────────┼─────────┼─────────┼──────────┤
+  Alto   │         │ 55,56   │ 54,62-65│          │
+         ├─────────┼─────────┼─────────┼──────────┤
+  M.Alto │         │         │ 60,61   │ 58,59    │
+         └─────────┴─────────┴─────────┴──────────┘
+
+Sequência recomendada: 44→45→46→47→48→51→49→50→54→52→53→62→63→58→59
+```
+
+### O.4. Impacto Cumulativo Estimado
+
+| Fase | BB/100 Incremental | BB/100 Total | Acurácia Predição |
+|------|-------------------|-------------|-------------------|
+| Baseline atual | — | ~91 BB/100 vs call-station | 38% Top-1 |
+| Fase 1 (Linear CFR + Huber) | +5-10 | ~96-101 | 38% |
+| Fase 2 (GRU + Dual Net) | +3-5 | ~99-106 | 50-55% Top-1 |
+| Fase 3 (500-dim state) | +5-8 | ~104-114 | 55-60% Top-1 |
+| Fase 4 (Mixed self-play) | +3-5 | ~107-119 | 60% Top-1 |
+| Fase 5 (ReBeL/NFSP) | +10-20 | ~117-139 | 65%+ Top-1 |
+
+### O.5. Referências Técnicas
+
+| Referência | Link | Técnica-Chave |
+|-----------|------|---------------|
+| deepcfr-poker v0.3.0 | PyPI: deepcfr-poker | GRU opponent modeling, Huber loss, mixed checkpoint |
+| deepcfr-6maxNLHE | GitHub: MY-leam/deepcfr-6maxNLHE | 500-dim state, dual networks, gradient clipping |
+| ReBeL | arXiv: 2007.13544 | Public Belief State, RL+Search convergência provada |
+| AlphaHoldem | AAAI 2022 Paper 20394 | End-to-end RL, 2.9ms/decisão |
+| RLCard | rlcard.org | CFR, NFSP, Deep CFR frameworks |
+| PokerRL | GitHub: EricSteinberger/PokerRL | NFSP, RPG, Single Deep CFR |
+| Stanford CS224R | cs224r.stanford.edu | LLM-guided opponent modeling |
