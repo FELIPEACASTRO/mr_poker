@@ -1511,8 +1511,10 @@ aplicáveis ao MR_POKER.
   - Consistency-enforced optimism
   - Hard warm-start policy accumulation schedule
 - **Resultado:** Supera Discounted Predictive CFR+ (estado da arte anterior)
-- **Aplicação MR_POKER:** Implementar VAD-CFR como novo modo em CFRTrainer.
-  Potencial de convergência 2-3x mais rápida que DCFR atual.
+- **Aplicação MR_POKER:** ✅ IMPLEMENTADO — `mode="vadcfr"` em CFRTrainer.
+  - `CFRState.update_vad()`: per-action EMA volatility + consistency-enforced optimism + hard warm-start
+  - `CFRState.apply_vad_discount()`: volatility-adaptive discount factors per info-set
+  - 18 testes em `tests/unit/test_vadcfr.py`
 - **Também descobriram:** SHOR-PSRO (hybrid meta-solver) para PSRO
 
 #### Q.1.4 NeuPL — Neural Population Learning (DeepMind 2022)
@@ -1682,7 +1684,7 @@ aplicáveis ao MR_POKER.
 
 | # | Recurso | Impacto | Esforço | Prioridade |
 |---|---------|---------|---------|------------|
-| 1 | **VAD-CFR** | +2-5x convergência CFR | MÉDIO | 🔴 CRÍTICO |
+| 1 | **VAD-CFR** | +2-5x convergência CFR | MÉDIO | ✅ IMPLEMENTADO |
 | 2 | **PokerBench Dataset** | Calibração + validação | BAIXO | 🔴 CRÍTICO |
 | 3 | **Update-Equivalence** | Decision-time planning 100x mais rápido | ALTO | 🟡 ALTO |
 | 4 | **NeuPL** | Multi-policy em 1 rede | ALTO | 🟡 ALTO |
