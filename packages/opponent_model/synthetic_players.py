@@ -1,23 +1,38 @@
 """Synthetic Player Generator — Probabilistic model for diverse opponent profiles.
 
 Generates realistic synthetic opponent profiles using a probabilistic
-graphical model (PGM) approach inspired by NVIDIA's Nemotron-Personas.
+graphical model (PGM) approach inspired by NVIDIA's Nemotron-Personas-Singapore.
 
-Instead of hand-crafting archetypes, this module defines statistical
-relationships between player traits and generates diverse, realistic
-profiles by sampling from the joint distribution.
+Architecture follows a hierarchical conditional dependency graph:
 
-Trait dependencies:
-    skill_level → {vpip, pfr, aggression, fold_to_cbet, timing_variance}
-    tilt_prone → {vpip_delta, aggression_delta, overbet_freq}
-    experience → {positional_awareness, sizing_precision, timing_consistency}
+Layer 1 (Sampled first):
+    personality (Big Five) → archetype probabilities
+    risk_tolerance → aggression, overbet_freq
+
+Layer 2 (Conditioned on Layer 1):
+    archetype → base stats template
+    skill_level | personality.conscientiousness → stat adjustments
+
+Layer 3 (Conditioned on Layers 1-2):
+    stats = template + skill_adj + personality_adj + noise
+    timing = f(skill, personality.neuroticism)
+    tilt_propensity = f(neuroticism, agreeableness)
+
+Layer 4 (Session dynamics):
+    session_state → stat drift (tilt, fatigue, momentum)
+
+References:
+- NVIDIA Nemotron-Personas (2026): PGM grounded in census distributions
+- DeepPersona (2511.07338): 100+ hierarchical attributes per persona
+- SCOPE (2601.07110): demographics = 1.5% variance; psychology dominates
+- PSYDIAL (2024): Big Five personality → behavioral generation
 
 Usage::
 
     generator = SyntheticPlayerGenerator(seed=42)
     profiles = generator.generate_batch(100)
     for p in profiles:
-        print(p.name, p.archetype, p.stats)
+        print(p.name, p.archetype, p.personality, p.stats)
 """
 
 from __future__ import annotations
@@ -25,6 +40,44 @@ from __future__ import annotations
 import math
 import random
 from dataclasses import dataclass, field
+
+
+@dataclass
+class PersonalityProfile:
+    """Big Five personality traits mapped to poker behavior.
+
+    Each trait is 0.0-1.0. Trait-to-poker mappings based on PSYDIAL
+    and behavioral psychology research:
+
+    - openness: creative play, unusual lines, bluff frequency
+    - conscientiousness: disciplined play, bankroll management, GTO adherence
+    - extraversion: aggression, table talk, action-seeking
+    - agreeableness: passive play, calling frequency, avoid confrontation
+    - neuroticism: tilt propensity, timing variance, emotional swings
+    """
+
+    openness: float = 0.5
+    conscientiousness: float = 0.5
+    extraversion: float = 0.5
+    agreeableness: float = 0.5
+    neuroticism: float = 0.5
+
+    def to_vector(self) -> list[float]:
+        """5-dim personality vector."""
+        return [self.openness, self.conscientiousness, self.extraversion,
+                self.agreeableness, self.neuroticism]
+
+    @property
+    def risk_tolerance(self) -> float:
+        """Derived: openness + extraversion - conscientiousness - agreeableness."""
+        raw = (self.openness + self.extraversion -
+               self.conscientiousness - self.agreeableness + 1.0) / 3.0
+        return max(0.0, min(1.0, raw))
+
+    @property
+    def emotional_stability(self) -> float:
+        """Inverse of neuroticism."""
+        return 1.0 - self.neuroticism
 
 
 @dataclass
@@ -68,6 +121,7 @@ class SyntheticPlayer:
     tilt_propensity: float     # 0-1
     experience_hours: float    # estimated hours played
     stats: SyntheticPlayerStats = field(default_factory=SyntheticPlayerStats)
+    personality: PersonalityProfile = field(default_factory=PersonalityProfile)
 
 
 # Archetype stat templates (mean values)
@@ -148,12 +202,38 @@ _NAMES_LAST = [
 ]
 
 
-class SyntheticPlayerGenerator:
-    """Generates diverse synthetic player profiles.
+# Personality → Archetype affinity weights (Big Five → archetype probability boost)
+# Based on PSYDIAL (2024) and behavioral psychology research
+_PERSONALITY_ARCHETYPE_AFFINITY: dict[str, dict[str, float]] = {
+    "nit": {"openness": -0.3, "conscientiousness": 0.5, "extraversion": -0.3, "agreeableness": 0.1, "neuroticism": 0.2},
+    "tag": {"openness": 0.1, "conscientiousness": 0.4, "extraversion": 0.1, "agreeableness": -0.1, "neuroticism": -0.1},
+    "lag": {"openness": 0.4, "conscientiousness": 0.2, "extraversion": 0.4, "agreeableness": -0.3, "neuroticism": 0.0},
+    "maniac": {"openness": 0.3, "conscientiousness": -0.4, "extraversion": 0.5, "agreeableness": -0.5, "neuroticism": 0.3},
+    "fish": {"openness": 0.0, "conscientiousness": -0.3, "extraversion": 0.2, "agreeableness": 0.3, "neuroticism": 0.1},
+    "whale": {"openness": 0.2, "conscientiousness": -0.2, "extraversion": 0.3, "agreeableness": 0.1, "neuroticism": 0.0},
+    "rock": {"openness": -0.4, "conscientiousness": 0.5, "extraversion": -0.4, "agreeableness": 0.2, "neuroticism": 0.3},
+    "calling_station": {"openness": -0.1, "conscientiousness": -0.2, "extraversion": 0.0, "agreeableness": 0.5, "neuroticism": 0.1},
+}
 
-    Uses a PGM-inspired approach: first samples high-level traits
-    (skill, archetype, tilt propensity), then conditions detailed
-    stats on those traits with controlled noise.
+# Personality adjustments to stats (on top of skill adjustments)
+_PERSONALITY_STAT_EFFECTS: dict[str, dict[str, float]] = {
+    "openness": {"overbet_freq": 0.04, "check_raise_freq": 0.03, "squeeze_freq": 0.02},
+    "conscientiousness": {"vpip": -0.05, "limp_freq": -0.05, "donk_freq": -0.03, "cbet_freq": 0.05},
+    "extraversion": {"vpip": 0.05, "pfr": 0.03, "three_bet": 0.02, "aggression_factor": 0.5},
+    "agreeableness": {"fold_to_cbet": 0.08, "aggression_factor": -0.5, "wtsd": 0.05},
+    "neuroticism": {"overbet_freq": 0.03, "timing_mean_ms": 500.0, "timing_std_ms": 300.0},
+}
+
+
+class SyntheticPlayerGenerator:
+    """Generates diverse synthetic player profiles using hierarchical PGM.
+
+    Generation follows a 3-layer conditional dependency graph
+    inspired by NVIDIA Nemotron-Personas (2026):
+
+    Layer 1: Sample personality (Big Five traits)
+    Layer 2: personality → archetype probabilities → skill_level
+    Layer 3: archetype + skill + personality → stats + timing
 
     Args:
         seed: Random seed for reproducibility.
@@ -164,34 +244,106 @@ class SyntheticPlayerGenerator:
         self.rng = random.Random(seed)
         self.noise_scale = noise_scale
 
+    def _sample_personality(self) -> PersonalityProfile:
+        """Sample Big Five personality traits from population distributions.
+
+        Uses beta distributions calibrated to real-world trait distributions
+        (SCOPE Framework, 2601.07110).
+        """
+        return PersonalityProfile(
+            openness=self.rng.betavariate(4.0, 4.0),        # centered ~0.5
+            conscientiousness=self.rng.betavariate(5.0, 3.0),  # skewed high
+            extraversion=self.rng.betavariate(3.0, 3.0),     # centered
+            agreeableness=self.rng.betavariate(5.0, 3.0),    # skewed high
+            neuroticism=self.rng.betavariate(2.5, 4.0),      # skewed low
+        )
+
+    def _archetype_from_personality(
+        self, personality: PersonalityProfile
+    ) -> str:
+        """Conditionally sample archetype given personality (PGM Layer 2).
+
+        Computes affinity scores between personality and each archetype,
+        then samples from softmax distribution.
+        """
+        scores: dict[str, float] = {}
+        for arch, affinities in _PERSONALITY_ARCHETYPE_AFFINITY.items():
+            score = 1.0  # base weight
+            for trait, weight in affinities.items():
+                trait_val = getattr(personality, trait)
+                score += weight * (trait_val - 0.5) * 2.0  # center and scale
+            scores[arch] = max(0.01, score)
+
+        # Softmax sampling
+        total = sum(scores.values())
+        r = self.rng.random() * total
+        cumsum = 0.0
+        for arch, s in scores.items():
+            cumsum += s
+            if r <= cumsum:
+                return arch
+        return "tag"
+
     def generate(self, archetype: str | None = None) -> SyntheticPlayer:
-        """Generate a single synthetic player.
+        """Generate a single synthetic player via hierarchical PGM.
+
+        PGM Layer 1: Sample personality
+        PGM Layer 2: personality → archetype + skill
+        PGM Layer 3: archetype + skill + personality → stats
 
         Args:
             archetype: Force a specific archetype (random if None).
 
         Returns:
-            SyntheticPlayer with full profile.
+            SyntheticPlayer with full profile including personality.
         """
-        # Sample archetype
+        # Layer 1: Sample personality
+        personality = self._sample_personality()
+
+        # Layer 2: Condition archetype on personality
         if archetype is None:
-            archetype = self.rng.choice(list(_ARCHETYPE_TEMPLATES.keys()))
+            archetype = self._archetype_from_personality(personality)
 
         template = _ARCHETYPE_TEMPLATES.get(archetype, _ARCHETYPE_TEMPLATES["tag"])
 
-        # Sample high-level traits
-        skill_level = self.rng.betavariate(2.0, 3.0)  # skewed toward lower skill
-        tilt_propensity = self.rng.betavariate(2.0, 5.0)  # most players aren't super tilty
-        experience_hours = self.rng.expovariate(1.0 / 500.0)  # mean 500 hours
+        # Skill conditioned on conscientiousness (disciplined → higher skill)
+        skill_base = self.rng.betavariate(2.0, 3.0)
+        skill_level = min(1.0, max(0.0,
+            skill_base * 0.7 + personality.conscientiousness * 0.3
+        ))
 
-        # Generate stats from template + skill adjustments + noise
+        # Tilt conditioned on neuroticism (SCOPE insight: psychology > demographics)
+        tilt_propensity = min(1.0, max(0.0,
+            personality.neuroticism * 0.6 +
+            (1.0 - personality.agreeableness) * 0.2 +
+            self.rng.gauss(0, 0.1)
+        ))
+
+        experience_hours = self.rng.expovariate(1.0 / 500.0)
+
+        # Layer 3: Generate stats conditioned on all higher layers
         stats = self._sample_stats(template, skill_level)
+        self._apply_personality_effects(stats, personality)
 
-        # Timing from skill (skilled = faster, more consistent)
-        stats.timing_mean_ms = max(500, 3000 - skill_level * 2000 + self.rng.gauss(0, 300))
-        stats.timing_std_ms = max(100, 1500 - skill_level * 1000 + self.rng.gauss(0, 200))
-        stats.positional_awareness = min(1.0, max(0.0, skill_level + self.rng.gauss(0, 0.1)))
-        stats.sizing_precision = min(1.0, max(0.0, skill_level * 0.8 + self.rng.gauss(0, 0.1)))
+        # Timing conditioned on skill + neuroticism
+        stats.timing_mean_ms = max(500,
+            3000 - skill_level * 2000 +
+            personality.neuroticism * 500 +
+            self.rng.gauss(0, 300)
+        )
+        stats.timing_std_ms = max(100,
+            1500 - skill_level * 1000 +
+            personality.neuroticism * 400 +
+            self.rng.gauss(0, 200)
+        )
+        stats.positional_awareness = min(1.0, max(0.0,
+            skill_level * 0.7 + personality.conscientiousness * 0.3 +
+            self.rng.gauss(0, 0.1)
+        ))
+        stats.sizing_precision = min(1.0, max(0.0,
+            skill_level * 0.6 + personality.conscientiousness * 0.2 +
+            self.rng.gauss(0, 0.1)
+        ))
 
         # Generate name
         first = self.rng.choice(_NAMES_FIRST)
@@ -205,6 +357,7 @@ class SyntheticPlayerGenerator:
             tilt_propensity=tilt_propensity,
             experience_hours=round(experience_hours, 1),
             stats=stats,
+            personality=personality,
         )
 
     def generate_batch(
@@ -274,3 +427,32 @@ class SyntheticPlayerGenerator:
             setattr(stats, stat_name, round(value, 4))
 
         return stats
+
+    def _apply_personality_effects(
+        self,
+        stats: SyntheticPlayerStats,
+        personality: PersonalityProfile,
+    ) -> None:
+        """Apply personality-conditioned adjustments to stats (PGM Layer 3).
+
+        Each Big Five trait has specific effects on poker stats,
+        scaled by trait deviation from population mean (0.5).
+        """
+        for trait_name, effects in _PERSONALITY_STAT_EFFECTS.items():
+            trait_val = getattr(personality, trait_name)
+            deviation = trait_val - 0.5  # how far from average
+
+            for stat_name, effect_magnitude in effects.items():
+                current = getattr(stats, stat_name)
+                adjustment = effect_magnitude * deviation
+
+                new_val = current + adjustment
+
+                if stat_name == "aggression_factor":
+                    new_val = max(0.1, min(10.0, new_val))
+                elif stat_name in ("timing_mean_ms", "timing_std_ms"):
+                    new_val = max(100.0, new_val)
+                else:
+                    new_val = max(0.0, min(1.0, new_val))
+
+                setattr(stats, stat_name, round(new_val, 4))

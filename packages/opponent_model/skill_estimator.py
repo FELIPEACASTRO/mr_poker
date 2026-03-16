@@ -277,6 +277,212 @@ class SkillEstimatorModel:
         )
 
 
+class BidirectionalLSTM:
+    """Bidirectional LSTM that processes sequence in both directions.
+
+    Inspired by Chess Rating from Moves (2409.11506) which showed
+    bidirectional processing captures both build-up and resolution
+    patterns in decision sequences.
+
+    Output is concatenation of forward and backward final hidden states.
+    """
+
+    def __init__(self, input_dim: int, hidden_dim: int, seed: int = 42) -> None:
+        self.hidden_dim = hidden_dim
+        self.forward_lstm = LSTMCell(input_dim, hidden_dim, seed=seed)
+        self.backward_lstm = LSTMCell(input_dim, hidden_dim, seed=seed + 100)
+
+    def forward_sequence(self, sequence: list[list[float]]) -> list[float]:
+        """Process sequence bidirectionally, return concatenated hidden states."""
+        if not sequence:
+            return [0.0] * (self.hidden_dim * 2)
+
+        fwd_hidden = self.forward_lstm.forward_sequence(sequence)
+        bwd_hidden = self.backward_lstm.forward_sequence(list(reversed(sequence)))
+        return fwd_hidden + bwd_hidden
+
+
+class BayesianSkillTracker:
+    """OpenSkill-inspired Bayesian skill rating using online updates.
+
+    Implements a simplified Plackett-Luce model (OpenSkill, 2401.05451)
+    for tracking opponent skill as a posterior distribution.
+
+    The skill estimate is maintained as a Gaussian (mu, sigma) that
+    updates with each observed decision quality score.
+
+    Usage::
+
+        tracker = BayesianSkillTracker()
+        tracker.update(decision_quality=0.8)  # good decision
+        tracker.update(decision_quality=0.2)  # bad decision
+        mu, sigma = tracker.estimate()
+    """
+
+    def __init__(
+        self,
+        prior_mu: float = 0.5,
+        prior_sigma: float = 0.25,
+        dynamics_sigma: float = 0.01,
+    ) -> None:
+        self.mu = prior_mu
+        self.sigma = prior_sigma
+        self.dynamics_sigma = dynamics_sigma
+        self.n_observations = 0
+
+    def update(self, decision_quality: float) -> None:
+        """Update skill estimate with a new decision quality observation.
+
+        decision_quality: 0-1 score (0=terrible, 1=optimal).
+        """
+        # Add dynamics noise (skill can change over time)
+        self.sigma = math.sqrt(self.sigma ** 2 + self.dynamics_sigma ** 2)
+
+        # Bayesian update: treat observation as Gaussian with known variance
+        obs_sigma = 0.3  # observation noise
+        k = self.sigma ** 2 / (self.sigma ** 2 + obs_sigma ** 2)
+        self.mu = self.mu + k * (decision_quality - self.mu)
+        self.sigma = math.sqrt((1 - k) * self.sigma ** 2)
+        self.n_observations += 1
+
+    def estimate(self) -> tuple[float, float]:
+        """Return (mu, sigma) of skill estimate."""
+        return (max(0.0, min(1.0, self.mu)), self.sigma)
+
+    @property
+    def confidence(self) -> float:
+        """Confidence based on posterior precision (1 - normalized sigma)."""
+        return max(0.0, min(1.0, 1.0 - self.sigma / 0.25))
+
+    def reset(self) -> None:
+        self.mu = 0.5
+        self.sigma = 0.25
+        self.n_observations = 0
+
+
+class EnhancedSkillEstimator:
+    """Enhanced CNN-BiLSTM + Bayesian tracking skill estimator.
+
+    Combines:
+    1. Neural pattern recognition (Conv1D → BiLSTM → FC)
+    2. Bayesian online tracking (OpenSkill-style Gaussian updates)
+
+    The neural model captures complex decision patterns while
+    the Bayesian tracker provides smooth, uncertainty-aware estimates.
+
+    Args:
+        window_size: Decisions for neural model.
+        seed: Random seed.
+    """
+
+    def __init__(self, window_size: int = 20, seed: int = 42) -> None:
+        self.window_size = window_size
+
+        # CNN
+        conv_channels = 16
+        self.conv = Conv1DLayer(
+            in_channels=_FEATURE_DIM,
+            out_channels=conv_channels,
+            kernel_size=3,
+            seed=seed,
+        )
+
+        # Bidirectional LSTM
+        lstm_hidden = 16
+        self.bilstm = BidirectionalLSTM(
+            input_dim=conv_channels,
+            hidden_dim=lstm_hidden,
+            seed=seed + 1,
+        )
+
+        # Output head: 2*lstm_hidden → 1
+        bilstm_out_dim = lstm_hidden * 2
+        rng = random.Random(seed + 2)
+        scale = math.sqrt(2.0 / bilstm_out_dim)
+        self.output_w = [rng.gauss(0, scale) for _ in range(bilstm_out_dim)]
+        self.output_b = 0.0
+
+        # Bayesian tracker
+        self.bayesian = BayesianSkillTracker()
+
+        # Decision buffer
+        self._decisions: list[DecisionFeature] = []
+        self._max_buffer = window_size * 2
+
+    def record_decision(self, decision: DecisionFeature) -> None:
+        """Record a decision and update Bayesian tracker."""
+        self._decisions.append(decision)
+        if len(self._decisions) > self._max_buffer:
+            self._decisions = self._decisions[-self._max_buffer:]
+
+        # Simple decision quality heuristic for Bayesian update
+        quality = self._decision_quality(decision)
+        self.bayesian.update(quality)
+
+    def _decision_quality(self, d: DecisionFeature) -> float:
+        """Heuristic quality score from decision features."""
+        # Higher action diversity, appropriate timing, position awareness → higher quality
+        quality = 0.5
+        # Aggressive actions in position = higher quality
+        quality += (d.action_type - 0.4) * 0.3 * d.position_score
+        # Moderate timing = higher quality (not too fast, not too slow)
+        quality -= abs(d.decision_time_norm - 0.5) * 0.2
+        # Using pot odds = higher quality
+        quality += d.bet_fraction * 0.1
+        return max(0.0, min(1.0, quality))
+
+    def estimate(self) -> SkillEstimate:
+        """Combined neural + Bayesian skill estimate."""
+        if len(self._decisions) < 3:
+            return SkillEstimate(skill_rating=0.5, confidence=0.0, skill_label="unknown")
+
+        # Neural estimate
+        window = self._decisions[-self.window_size:]
+        sequence = [d.to_vector() for d in window]
+        conv_out = self.conv.forward(sequence)
+        bilstm_hidden = self.bilstm.forward_sequence(conv_out)
+
+        raw = self.output_b + sum(
+            self.output_w[i] * bilstm_hidden[i]
+            for i in range(len(self.output_w))
+        )
+        neural_rating = 1.0 / (1.0 + math.exp(-raw))
+
+        # Bayesian estimate
+        bayes_mu, bayes_sigma = self.bayesian.estimate()
+
+        # Blend: weight by Bayesian confidence
+        bayes_conf = self.bayesian.confidence
+        window_conf = min(1.0, len(window) / self.window_size)
+
+        # More Bayesian data → trust it more
+        w_bayes = min(0.5, bayes_conf * 0.5)
+        w_neural = 1.0 - w_bayes
+        rating = w_neural * neural_rating + w_bayes * bayes_mu
+
+        confidence = max(window_conf, bayes_conf)
+        label = SkillEstimate.label_from_rating(rating)
+
+        return SkillEstimate(
+            skill_rating=rating,
+            confidence=confidence,
+            skill_label=label,
+        )
+
+    @property
+    def decisions_recorded(self) -> int:
+        return len(self._decisions)
+
+    @property
+    def bayesian_estimate(self) -> tuple[float, float]:
+        """Access Bayesian (mu, sigma) directly."""
+        return self.bayesian.estimate()
+
+    def reset(self) -> None:
+        self._decisions.clear()
+        self.bayesian.reset()
+
+
 class OnlineSkillEstimator:
     """Wrapper that accumulates decisions and estimates skill online.
 

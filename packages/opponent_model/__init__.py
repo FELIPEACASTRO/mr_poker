@@ -14,8 +14,8 @@ from .style_embedding import StyleEmbedder
 from .behavioral_pipeline import BehavioralPipeline, BehavioralSignals
 from .mbom import RecursiveModeler, OpponentModel as MBOMOpponentModel, BeliefState
 from .ddm_timing import DDMEstimator, DDMParameters, PreferenceEstimate
-from .skill_estimator import OnlineSkillEstimator, SkillEstimatorModel, SkillEstimate
-from .synthetic_players import SyntheticPlayerGenerator, SyntheticPlayer, SyntheticPlayerStats
+from .skill_estimator import OnlineSkillEstimator, SkillEstimatorModel, SkillEstimate, EnhancedSkillEstimator, BayesianSkillTracker, BidirectionalLSTM
+from .synthetic_players import SyntheticPlayerGenerator, SyntheticPlayer, SyntheticPlayerStats, PersonalityProfile
 
 __all__ = [
     "build_opponent_profile",
@@ -49,7 +49,11 @@ __all__ = [
     "OnlineSkillEstimator",
     "SkillEstimatorModel",
     "SkillEstimate",
+    "EnhancedSkillEstimator",
+    "BayesianSkillTracker",
+    "BidirectionalLSTM",
     "SyntheticPlayerGenerator",
     "SyntheticPlayer",
     "SyntheticPlayerStats",
+    "PersonalityProfile",
 ]

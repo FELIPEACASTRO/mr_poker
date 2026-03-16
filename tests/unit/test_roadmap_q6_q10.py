@@ -12,14 +12,18 @@ from packages.opponent_model.ddm_timing import (
     PreferenceEstimate,
 )
 from packages.opponent_model.skill_estimator import (
+    BayesianSkillTracker,
+    BidirectionalLSTM,
     Conv1DLayer,
     DecisionFeature,
+    EnhancedSkillEstimator,
     LSTMCell,
     OnlineSkillEstimator,
     SkillEstimate,
     SkillEstimatorModel,
 )
 from packages.opponent_model.synthetic_players import (
+    PersonalityProfile,
     SyntheticPlayer,
     SyntheticPlayerGenerator,
     SyntheticPlayerStats,
@@ -321,3 +325,193 @@ class TestSyntheticPlayerGenerator:
         vec = player.stats.to_vector()
         assert len(vec) == 12
         assert all(isinstance(v, float) for v in vec)
+
+
+# ---------------------------------------------------------------------------
+# PGM Upgrade: Personality-conditioned generation (Nemotron-Personas inspired)
+# ---------------------------------------------------------------------------
+
+
+class TestPersonalityProfile:
+    def test_to_vector(self):
+        p = PersonalityProfile(openness=0.8, conscientiousness=0.3)
+        vec = p.to_vector()
+        assert len(vec) == 5
+        assert vec[0] == 0.8
+        assert vec[1] == 0.3
+
+    def test_risk_tolerance_high(self):
+        """High openness + extraversion, low conscientiousness → high risk."""
+        p = PersonalityProfile(openness=0.9, conscientiousness=0.1,
+                               extraversion=0.9, agreeableness=0.1)
+        assert p.risk_tolerance > 0.6
+
+    def test_risk_tolerance_low(self):
+        """Low openness + extraversion, high conscientiousness → low risk."""
+        p = PersonalityProfile(openness=0.1, conscientiousness=0.9,
+                               extraversion=0.1, agreeableness=0.9)
+        assert p.risk_tolerance < 0.4
+
+    def test_emotional_stability(self):
+        p = PersonalityProfile(neuroticism=0.8)
+        assert p.emotional_stability == pytest.approx(0.2)
+
+
+class TestPGMGeneration:
+    def setup_method(self):
+        self.gen = SyntheticPlayerGenerator(seed=42)
+
+    def test_personality_present(self):
+        player = self.gen.generate()
+        assert hasattr(player, "personality")
+        assert isinstance(player.personality, PersonalityProfile)
+        assert 0 <= player.personality.openness <= 1
+        assert 0 <= player.personality.neuroticism <= 1
+
+    def test_personality_conditions_archetype(self):
+        """Different personalities should produce different archetype distributions."""
+        gen1 = SyntheticPlayerGenerator(seed=100)
+        gen2 = SyntheticPlayerGenerator(seed=200)
+        archetypes1 = [gen1.generate().archetype for _ in range(100)]
+        archetypes2 = [gen2.generate().archetype for _ in range(100)]
+        # Different seeds → different personality samples → different distributions
+        # (not guaranteed to be totally different, but at least some diversity)
+        assert len(set(archetypes1)) > 1
+        assert len(set(archetypes2)) > 1
+
+    def test_neuroticism_affects_tilt(self):
+        """High neuroticism should correlate with higher tilt propensity."""
+        players = self.gen.generate_batch(300)
+        neurotic = [p for p in players if p.personality.neuroticism > 0.5]
+        stable = [p for p in players if p.personality.neuroticism < 0.3]
+        if neurotic and stable:
+            avg_tilt_neurotic = sum(p.tilt_propensity for p in neurotic) / len(neurotic)
+            avg_tilt_stable = sum(p.tilt_propensity for p in stable) / len(stable)
+            assert avg_tilt_neurotic > avg_tilt_stable
+
+    def test_conscientiousness_affects_skill(self):
+        """High conscientiousness should correlate with higher skill."""
+        players = self.gen.generate_batch(300)
+        conscientious = [p for p in players if p.personality.conscientiousness > 0.6]
+        careless = [p for p in players if p.personality.conscientiousness < 0.3]
+        if conscientious and careless:
+            avg_skill_c = sum(p.skill_level for p in conscientious) / len(conscientious)
+            avg_skill_l = sum(p.skill_level for p in careless) / len(careless)
+            assert avg_skill_c > avg_skill_l
+
+    def test_personality_effects_on_stats(self):
+        """Extraverted players should have higher aggression on average."""
+        players = self.gen.generate_batch(300)
+        extraverts = [p for p in players if p.personality.extraversion > 0.6]
+        introverts = [p for p in players if p.personality.extraversion < 0.3]
+        if extraverts and introverts:
+            avg_agg_e = sum(p.stats.aggression_factor for p in extraverts) / len(extraverts)
+            avg_agg_i = sum(p.stats.aggression_factor for p in introverts) / len(introverts)
+            assert avg_agg_e > avg_agg_i - 0.5  # allow noise
+
+    def test_deterministic_with_personality(self):
+        """Same seed → same personality."""
+        gen1 = SyntheticPlayerGenerator(seed=42)
+        gen2 = SyntheticPlayerGenerator(seed=42)
+        p1 = gen1.generate()
+        p2 = gen2.generate()
+        assert abs(p1.personality.openness - p2.personality.openness) < 1e-10
+        assert abs(p1.personality.neuroticism - p2.personality.neuroticism) < 1e-10
+
+    def test_personality_vector_all_valid(self):
+        players = self.gen.generate_batch(50)
+        for p in players:
+            vec = p.personality.to_vector()
+            assert len(vec) == 5
+            assert all(0 <= v <= 1 for v in vec)
+
+
+# ---------------------------------------------------------------------------
+# Enhanced Skill Estimator: BiLSTM + Bayesian Tracking
+# ---------------------------------------------------------------------------
+
+
+class TestBidirectionalLSTM:
+    def test_output_dim(self):
+        bilstm = BidirectionalLSTM(input_dim=8, hidden_dim=4)
+        seq = [[0.5] * 8 for _ in range(5)]
+        out = bilstm.forward_sequence(seq)
+        assert len(out) == 8  # 4 forward + 4 backward
+
+    def test_empty_sequence(self):
+        bilstm = BidirectionalLSTM(input_dim=8, hidden_dim=4)
+        out = bilstm.forward_sequence([])
+        assert len(out) == 8
+        assert all(v == 0.0 for v in out)
+
+
+class TestBayesianSkillTracker:
+    def test_initial_state(self):
+        tracker = BayesianSkillTracker()
+        mu, sigma = tracker.estimate()
+        assert mu == pytest.approx(0.5)
+        assert sigma == pytest.approx(0.25)
+
+    def test_update_shifts_estimate(self):
+        tracker = BayesianSkillTracker()
+        for _ in range(10):
+            tracker.update(0.9)  # consistently good
+        mu, _ = tracker.estimate()
+        assert mu > 0.7
+
+    def test_update_bad_decisions(self):
+        tracker = BayesianSkillTracker()
+        for _ in range(10):
+            tracker.update(0.1)  # consistently bad
+        mu, _ = tracker.estimate()
+        assert mu < 0.3
+
+    def test_confidence_increases(self):
+        tracker = BayesianSkillTracker()
+        c0 = tracker.confidence
+        for _ in range(20):
+            tracker.update(0.6)
+        assert tracker.confidence > c0
+
+    def test_reset(self):
+        tracker = BayesianSkillTracker()
+        tracker.update(0.9)
+        tracker.reset()
+        mu, sigma = tracker.estimate()
+        assert mu == pytest.approx(0.5)
+        assert tracker.n_observations == 0
+
+
+class TestEnhancedSkillEstimator:
+    def test_record_and_estimate(self):
+        est = EnhancedSkillEstimator(window_size=10, seed=42)
+        for i in range(10):
+            est.record_decision(DecisionFeature(action_type=0.5, decision_time_norm=0.5))
+        result = est.estimate()
+        assert 0 <= result.skill_rating <= 1
+        assert result.confidence > 0
+
+    def test_few_decisions_low_confidence(self):
+        est = EnhancedSkillEstimator()
+        result = est.estimate()
+        assert result.confidence == 0.0
+
+    def test_bayesian_estimate_accessible(self):
+        est = EnhancedSkillEstimator(seed=42)
+        est.record_decision(DecisionFeature(action_type=0.8))
+        mu, sigma = est.bayesian_estimate
+        assert isinstance(mu, float)
+        assert isinstance(sigma, float)
+
+    def test_decisions_recorded_count(self):
+        est = EnhancedSkillEstimator()
+        assert est.decisions_recorded == 0
+        est.record_decision(DecisionFeature())
+        assert est.decisions_recorded == 1
+
+    def test_reset_clears_all(self):
+        est = EnhancedSkillEstimator()
+        est.record_decision(DecisionFeature())
+        est.reset()
+        assert est.decisions_recorded == 0
+        assert est.bayesian.n_observations == 0

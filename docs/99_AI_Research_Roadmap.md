@@ -1750,3 +1750,96 @@ aplicáveis ao MR_POKER.
 - **Itens implementados:** 9 de 10 (item #10 LLM gambling biases é validação, prioridade baixa)
 - **Total de testes novos:** 35 (itens #6-#10) + 28 (NeuPL+MBOM) + 26 (Update-Equiv) + 21 (PokerBench) + 18 (VAD-CFR) = **128 novos testes**
 - **Todos os 1366+ testes passam** (exceto 1 pré-existente não relacionado)
+
+---
+
+## Seção O — Pesquisa Global: Recursos Externos para MR_POKER
+
+### O.1 Varredura de Plataformas (9 plataformas, 5 países)
+
+**47 recursos identificados, 12 de ALTO impacto direto.**
+
+#### Datasets de Alto Impacto
+
+| Recurso | Tipo | Tamanho | Impacto | Fonte |
+|---------|------|---------|---------|-------|
+| **nvidia/Nemotron-Personas-Singapore** | 888K personas, PGM 38 campos | 118M tokens | Upgrade SyntheticPlayerGenerator com PGM real | HuggingFace CC-BY-4.0 |
+| **SoelMgd/Poker_Dataset** | 52K Q&A poker decisions | 13MB | Training data para BehaviorPredictor | HuggingFace Apache-2.0 |
+| **gb6077/pokerstars.de-*** | Hand histories reais + GTO analysis | ~1K | Formato referência com EV estimates | HuggingFace |
+| **the-acorn-ai/kuhn-poker** | Kuhn poker + QwQ-32B reasoning | 10K-100K | Validação convergência CFR | HuggingFace |
+
+#### Papers com Técnicas Implementáveis
+
+| Paper | Ano | Técnica | Módulo Beneficiado |
+|-------|-----|---------|-------------------|
+| **Centaur** | 2024 | Foundation model cognição humana (60K participantes, 10M+ choices) | DDMEstimator, BiasExploiter |
+| **DeepPersona** (2511.07338) | 2025 | 100+ atributos hierárquicos/persona, +11.6% behavioral prediction | SyntheticPlayerGenerator |
+| **SCOPE** (2601.07110) | 2026 | Demographics = 1.5% variância; psicologia domina | Validação archetype system |
+| **Chess Rating from Moves** (2409.11506) | 2024 | CNN-LSTM MAE 182 Elo, move-by-move | SkillEstimatorModel |
+| **OpenSkill** (2401.05451) | 2024 | Bayesian Plackett-Luce rating system | SkillEstimator upgrade |
+| **Valet Benchmark** (2603.03252) | 2026 | 21 jogos IIG com RECYCLE language | CFR/DCFR/VAD-CFR testing |
+| **Persona Hub** (2406.20094) | 2024 | 1 bilhão de personas para synthetic data | Scale up geração |
+
+#### Modelos HuggingFace Reutilizáveis
+
+| Modelo | Tipo | Aplicação |
+|--------|------|-----------|
+| **sr5434/AlphaZero-Kuhn-Poker** | RL treinado | Baseline CFR |
+| **nobody12321/poker-pretraining** | GPT-2 poker | Feature extraction |
+| **aniketarahane/llama2_poker** | LLaMA 2 fine-tuned | Action prediction reference |
+
+### O.2 Nemotron-Personas: Schema PGM Detalhado
+
+**Grafo de Dependências Condicionais (aplicável ao nosso SyntheticPlayerGenerator):**
+
+```
+age → marital_status, education_level, occupation
+sex → occupation (condicional)
+planning_area → cultural_background, industry
+education_level → occupation, skills
+occupation → industry, hobbies, skills
+cultural_background → hobbies, culinary, arts
+```
+
+**38 campos organizados em 4 camadas:**
+1. **Demographics (6):** age, sex, marital_status, education_level, occupation, industry
+2. **Geography (2):** planning_area, country
+3. **Lifestyle (6):** hobbies, skills, career_goals, cultural_background (narrative + list)
+4. **Personas (7):** professional, sports, arts, travel, culinary, overall, uuid
+
+**Insight chave para poker:** Mapear PGM para: archetype → skill_level → tilt_propensity → stats (VPIP, PFR, etc.) com dependências condicionais reais.
+
+### O.3 Poker_Dataset: Formato de Decisão
+
+**52K cenários no formato:**
+```
+[TABLE_CONFIGURATION] BTN=P3 SB=P4 0.5BB BB=P5 1BB
+[STACKS] P1: 45.7BB P2: 55.7BB P3: 101.9BB P4: 40.3BB [Qh 2d] P5: 139.1BB
+POT=1.5BB
+[PREFLOP] P1: FOLD P2: FOLD P3: FOLD P4: FOLD P5: ?
+→ ANSWER: CHECK
+```
+
+**Aplicação:** Parser para extrair features de decisão → treinar BehaviorPredictor e SkillEstimator.
+
+### O.4 Avaliação das Plataformas Asiáticas
+
+| País | Plataforma | Relevância Poker |
+|------|-----------|-----------------|
+| 🇸🇬 Singapura | Nemotron-Personas | ✅ ALTÍSSIMA — PGM para synthetic players |
+| 🇨🇳 China | CSTCloud (196 modelos) | ⚠️ Ciências naturais; sem game theory |
+| 🇨🇳 China | DanQing (100M imagem-texto) | ❌ Visão-linguagem |
+| 🇰🇷 Coreia | A.X LLM (519B params) | ⚠️ Eficiência token; sem poker |
+| 🇰🇷 Coreia | ELRIS Datasets | ❌ Educacional |
+| 🇯🇵 Japão | Swallow LLM | ⚠️ Reasoning bom; genérico |
+| 🇯🇵 Japão | DEJIMA (3.88M imagem-texto) | ❌ VQA japonês |
+| 🇮🇳 Índia | Vikram (35B+105B) | ⚠️ Não lançado |
+| 🇮🇳 Índia | AIKosh (7500 datasets) | ⚠️ Saúde/agricultura |
+
+### O.5 Fases de Integração
+
+1. **Fase 1** ✅ Downloads e análise de schemas (completo)
+2. **Fase 2** 🔄 Upgrade SyntheticPlayerGenerator com PGM Nemotron-style
+3. **Fase 3** 🔄 Upgrade SkillEstimator com Bidirectional LSTM + OpenSkill
+4. **Fase 4** 🔄 Behavioral Validation com Centaur insights
+5. **Fase 5** 🔄 Valet Benchmark integration
