@@ -1,0 +1,7 @@
+{
+  "model_type": "openskill_v2",
+  "n_players": 200,
+  "n_matches": 50000,
+  "final_correlation": 0.9901,
+  "mae": 0.1073
+}

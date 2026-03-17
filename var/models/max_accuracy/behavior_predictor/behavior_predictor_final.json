@@ -1,0 +1,10 @@
+{
+  "model_type": "behavior_predictor",
+  "epochs_trained": 147,
+  "final_ece": 0.012687,
+  "best_ece": 0.004242,
+  "action_accuracy": 0.718,
+  "total_observations": 8000,
+  "training_examples": 7900,
+  "n_players": 100
+}

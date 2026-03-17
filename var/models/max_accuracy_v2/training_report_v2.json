@@ -1,0 +1,69 @@
+{
+  "timestamp": "2026-03-16 19:55:27",
+  "version": "v2_numpy",
+  "total_models": 5,
+  "average_accuracy": 0.9431,
+  "models": [
+    {
+      "name": "CFR (DCFR)",
+      "accuracy": 1.0,
+      "metric_name": "convergence",
+      "secondary_metric": 0.0,
+      "secondary_name": "avg_abs_regret",
+      "epochs_or_iters": 5000,
+      "elapsed_seconds": 2.77,
+      "model_path": "var\\models\\max_accuracy_v2\\cfr\\cfr_dcfr_final.json",
+      "details": {}
+    },
+    {
+      "name": "PDCFR+",
+      "accuracy": 1.0,
+      "metric_name": "convergence",
+      "secondary_metric": 0.0,
+      "secondary_name": "avg_abs_regret",
+      "epochs_or_iters": 5000,
+      "elapsed_seconds": 3.67,
+      "model_path": "var\\models\\max_accuracy_v2\\pdcfr_plus\\pdcfr_plus_final.json",
+      "details": {}
+    },
+    {
+      "name": "Skill Estimator V2 (NumPy)",
+      "accuracy": 0.9423,
+      "metric_name": "classification_accuracy",
+      "secondary_metric": 0.028372,
+      "secondary_name": "MAE",
+      "epochs_or_iters": 50,
+      "elapsed_seconds": 71.65,
+      "model_path": "var\\models\\max_accuracy_v2\\skill_estimator\\skill_estimator_v2.json",
+      "details": {
+        "n_classes": 3,
+        "architecture": "20\u219296\u219248\u21921"
+      }
+    },
+    {
+      "name": "Behavior Predictor V2 (NumPy)",
+      "accuracy": 0.7829,
+      "metric_name": "action_accuracy",
+      "secondary_metric": 0.0,
+      "secondary_name": "",
+      "epochs_or_iters": 30,
+      "elapsed_seconds": 76.92,
+      "model_path": "var\\models\\max_accuracy_v2\\behavior_predictor\\behavior_predictor_v2.json",
+      "details": {
+        "architecture": "90\u2192128\u219264\u21926",
+        "n_players": 500
+      }
+    },
+    {
+      "name": "OpenSkill V2",
+      "accuracy": 0.9901,
+      "metric_name": "correlation",
+      "secondary_metric": 0.107261,
+      "secondary_name": "MAE",
+      "epochs_or_iters": 50000,
+      "elapsed_seconds": 0.1,
+      "model_path": "var\\models\\max_accuracy_v2\\openskill\\openskill_v2.json",
+      "details": {}
+    }
+  ]
+}

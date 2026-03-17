@@ -1,0 +1,609 @@
+{
+  "model_type": "openskill",
+  "n_players": 100,
+  "n_matches": 20000,
+  "final_correlation": 0.9711,
+  "mae": 0.1284,
+  "ratings": {
+    "player_0000": {
+      "mu": 0.5906,
+      "sigma": 0.0458,
+      "true_skill": 0.6394,
+      "error": 0.0488
+    },
+    "player_0001": {
+      "mu": 0.293,
+      "sigma": 0.0444,
+      "true_skill": 0.025,
+      "error": 0.2679
+    },
+    "player_0002": {
+      "mu": 0.3263,
+      "sigma": 0.0446,
+      "true_skill": 0.275,
+      "error": 0.0513
+    },
+    "player_0003": {
+      "mu": 0.3674,
+      "sigma": 0.0434,
+      "true_skill": 0.2232,
+      "error": 0.1442
+    },
+    "player_0004": {
+      "mu": 0.6903,
+      "sigma": 0.0444,
+      "true_skill": 0.7365,
+      "error": 0.0462
+    },
+    "player_0005": {
+      "mu": 0.6239,
+      "sigma": 0.0428,
+      "true_skill": 0.6767,
+      "error": 0.0528
+    },
+    "player_0006": {
+      "mu": 0.7366,
+      "sigma": 0.0446,
+      "true_skill": 0.8922,
+      "error": 0.1556
+    },
+    "player_0007": {
+      "mu": 0.3109,
+      "sigma": 0.045,
+      "true_skill": 0.0869,
+      "error": 0.224
+    },
+    "player_0008": {
+      "mu": 0.4692,
+      "sigma": 0.0444,
+      "true_skill": 0.4219,
+      "error": 0.0473
+    },
+    "player_0009": {
+      "mu": 0.2638,
+      "sigma": 0.0483,
+      "true_skill": 0.0298,
+      "error": 0.234
+    },
+    "player_0010": {
+      "mu": 0.4464,
+      "sigma": 0.0444,
+      "true_skill": 0.2186,
+      "error": 0.2277
+    },
+    "player_0011": {
+      "mu": 0.5493,
+      "sigma": 0.0458,
+      "true_skill": 0.5054,
+      "error": 0.0439
+    },
+    "player_0012": {
+      "mu": 0.2903,
+      "sigma": 0.0431,
+      "true_skill": 0.0265,
+      "error": 0.2637
+    },
+    "player_0013": {
+      "mu": 0.4185,
+      "sigma": 0.0422,
+      "true_skill": 0.1988,
+      "error": 0.2197
+    },
+    "player_0014": {
+      "mu": 0.5854,
+      "sigma": 0.0426,
+      "true_skill": 0.6499,
+      "error": 0.0645
+    },
+    "player_0015": {
+      "mu": 0.538,
+      "sigma": 0.0436,
+      "true_skill": 0.5449,
+      "error": 0.0069
+    },
+    "player_0016": {
+      "mu": 0.4518,
+      "sigma": 0.0426,
+      "true_skill": 0.2204,
+      "error": 0.2314
+    },
+    "player_0017": {
+      "mu": 0.5712,
+      "sigma": 0.0422,
+      "true_skill": 0.5893,
+      "error": 0.0181
+    },
+    "player_0018": {
+      "mu": 0.6982,
+      "sigma": 0.0425,
+      "true_skill": 0.8094,
+      "error": 0.1113
+    },
+    "player_0019": {
+      "mu": 0.2626,
+      "sigma": 0.0442,
+      "true_skill": 0.0065,
+      "error": 0.2561
+    },
+    "player_0020": {
+      "mu": 0.7023,
+      "sigma": 0.0426,
+      "true_skill": 0.8058,
+      "error": 0.1035
+    },
+    "player_0021": {
+      "mu": 0.6257,
+      "sigma": 0.044,
+      "true_skill": 0.6981,
+      "error": 0.0725
+    },
+    "player_0022": {
+      "mu": 0.3993,
+      "sigma": 0.0446,
+      "true_skill": 0.3403,
+      "error": 0.059
+    },
+    "player_0023": {
+      "mu": 0.3631,
+      "sigma": 0.0458,
+      "true_skill": 0.1555,
+      "error": 0.2076
+    },
+    "player_0024": {
+      "mu": 0.6482,
+      "sigma": 0.0444,
+      "true_skill": 0.9572,
+      "error": 0.309
+    },
+    "player_0025": {
+      "mu": 0.3942,
+      "sigma": 0.0436,
+      "true_skill": 0.3366,
+      "error": 0.0576
+    },
+    "player_0026": {
+      "mu": 0.3249,
+      "sigma": 0.0448,
+      "true_skill": 0.0927,
+      "error": 0.2322
+    },
+    "player_0027": {
+      "mu": 0.2722,
+      "sigma": 0.0509,
+      "true_skill": 0.0967,
+      "error": 0.1755
+    },
+    "player_0028": {
+      "mu": 0.6857,
+      "sigma": 0.044,
+      "true_skill": 0.8475,
+      "error": 0.1618
+    },
+    "player_0029": {
+      "mu": 0.5755,
+      "sigma": 0.0479,
+      "true_skill": 0.6037,
+      "error": 0.0283
+    },
+    "player_0030": {
+      "mu": 0.6619,
+      "sigma": 0.044,
+      "true_skill": 0.8071,
+      "error": 0.1453
+    },
+    "player_0031": {
+      "mu": 0.6267,
+      "sigma": 0.0446,
+      "true_skill": 0.7297,
+      "error": 0.1031
+    },
+    "player_0032": {
+      "mu": 0.559,
+      "sigma": 0.0455,
+      "true_skill": 0.5362,
+      "error": 0.0228
+    },
+    "player_0033": {
+      "mu": 0.7609,
+      "sigma": 0.0446,
+      "true_skill": 0.9731,
+      "error": 0.2122
+    },
+    "player_0034": {
+      "mu": 0.4028,
+      "sigma": 0.045,
+      "true_skill": 0.3785,
+      "error": 0.0243
+    },
+    "player_0035": {
+      "mu": 0.6262,
+      "sigma": 0.0428,
+      "true_skill": 0.552,
+      "error": 0.0742
+    },
+    "player_0036": {
+      "mu": 0.7465,
+      "sigma": 0.0455,
+      "true_skill": 0.8294,
+      "error": 0.083
+    },
+    "player_0037": {
+      "mu": 0.5435,
+      "sigma": 0.0428,
+      "true_skill": 0.6185,
+      "error": 0.075
+    },
+    "player_0038": {
+      "mu": 0.6548,
+      "sigma": 0.0431,
+      "true_skill": 0.8617,
+      "error": 0.2069
+    },
+    "player_0039": {
+      "mu": 0.5624,
+      "sigma": 0.0453,
+      "true_skill": 0.5774,
+      "error": 0.015
+    },
+    "player_0040": {
+      "mu": 0.6334,
+      "sigma": 0.0423,
+      "true_skill": 0.7046,
+      "error": 0.0711
+    },
+    "player_0041": {
+      "mu": 0.2926,
+      "sigma": 0.0432,
+      "true_skill": 0.0458,
+      "error": 0.2468
+    },
+    "player_0042": {
+      "mu": 0.44,
+      "sigma": 0.0446,
+      "true_skill": 0.2279,
+      "error": 0.2121
+    },
+    "player_0043": {
+      "mu": 0.39,
+      "sigma": 0.044,
+      "true_skill": 0.2894,
+      "error": 0.1007
+    },
+    "player_0044": {
+      "mu": 0.3235,
+      "sigma": 0.0463,
+      "true_skill": 0.0798,
+      "error": 0.2437
+    },
+    "player_0045": {
+      "mu": 0.3761,
+      "sigma": 0.0466,
+      "true_skill": 0.2328,
+      "error": 0.1433
+    },
+    "player_0046": {
+      "mu": 0.3701,
+      "sigma": 0.046,
+      "true_skill": 0.101,
+      "error": 0.2691
+    },
+    "player_0047": {
+      "mu": 0.3395,
+      "sigma": 0.0416,
+      "true_skill": 0.278,
+      "error": 0.0616
+    },
+    "player_0048": {
+      "mu": 0.5912,
+      "sigma": 0.0413,
+      "true_skill": 0.6357,
+      "error": 0.0445
+    },
+    "player_0049": {
+      "mu": 0.4808,
+      "sigma": 0.0438,
+      "true_skill": 0.3648,
+      "error": 0.1159
+    },
+    "player_0050": {
+      "mu": 0.468,
+      "sigma": 0.044,
+      "true_skill": 0.3702,
+      "error": 0.0978
+    },
+    "player_0051": {
+      "mu": 0.3987,
+      "sigma": 0.0434,
+      "true_skill": 0.2095,
+      "error": 0.1892
+    },
+    "player_0052": {
+      "mu": 0.3571,
+      "sigma": 0.0444,
+      "true_skill": 0.267,
+      "error": 0.0901
+    },
+    "player_0053": {
+      "mu": 0.7849,
+      "sigma": 0.0438,
+      "true_skill": 0.9367,
+      "error": 0.1518
+    },
+    "player_0054": {
+      "mu": 0.5151,
+      "sigma": 0.0442,
+      "true_skill": 0.648,
+      "error": 0.133
+    },
+    "player_0055": {
+      "mu": 0.5859,
+      "sigma": 0.0436,
+      "true_skill": 0.6091,
+      "error": 0.0233
+    },
+    "player_0056": {
+      "mu": 0.3359,
+      "sigma": 0.0432,
+      "true_skill": 0.1711,
+      "error": 0.1648
+    },
+    "player_0057": {
+      "mu": 0.7045,
+      "sigma": 0.0458,
+      "true_skill": 0.7291,
+      "error": 0.0246
+    },
+    "player_0058": {
+      "mu": 0.3322,
+      "sigma": 0.0409,
+      "true_skill": 0.1634,
+      "error": 0.1688
+    },
+    "player_0059": {
+      "mu": 0.4744,
+      "sigma": 0.045,
+      "true_skill": 0.3795,
+      "error": 0.0949
+    },
+    "player_0060": {
+      "mu": 0.7957,
+      "sigma": 0.0428,
+      "true_skill": 0.9895,
+      "error": 0.1938
+    },
+    "player_0061": {
+      "mu": 0.582,
+      "sigma": 0.0438,
+      "true_skill": 0.64,
+      "error": 0.058
+    },
+    "player_0062": {
+      "mu": 0.5972,
+      "sigma": 0.0425,
+      "true_skill": 0.5569,
+      "error": 0.0402
+    },
+    "player_0063": {
+      "mu": 0.6116,
+      "sigma": 0.0425,
+      "true_skill": 0.6846,
+      "error": 0.073
+    },
+    "player_0064": {
+      "mu": 0.7325,
+      "sigma": 0.0444,
+      "true_skill": 0.8429,
+      "error": 0.1104
+    },
+    "player_0065": {
+      "mu": 0.6356,
+      "sigma": 0.0473,
+      "true_skill": 0.776,
+      "error": 0.1404
+    },
+    "player_0066": {
+      "mu": 0.3991,
+      "sigma": 0.0436,
+      "true_skill": 0.229,
+      "error": 0.17
+    },
+    "player_0067": {
+      "mu": 0.3031,
+      "sigma": 0.044,
+      "true_skill": 0.0321,
+      "error": 0.271
+    },
+    "player_0068": {
+      "mu": 0.3972,
+      "sigma": 0.046,
+      "true_skill": 0.3155,
+      "error": 0.0818
+    },
+    "player_0069": {
+      "mu": 0.3565,
+      "sigma": 0.0442,
+      "true_skill": 0.2677,
+      "error": 0.0888
+    },
+    "player_0070": {
+      "mu": 0.3151,
+      "sigma": 0.0444,
+      "true_skill": 0.211,
+      "error": 0.1041
+    },
+    "player_0071": {
+      "mu": 0.717,
+      "sigma": 0.0448,
+      "true_skill": 0.9429,
+      "error": 0.2259
+    },
+    "player_0072": {
+      "mu": 0.7602,
+      "sigma": 0.0448,
+      "true_skill": 0.8764,
+      "error": 0.1161
+    },
+    "player_0073": {
+      "mu": 0.4358,
+      "sigma": 0.0434,
+      "true_skill": 0.3147,
+      "error": 0.1212
+    },
+    "player_0074": {
+      "mu": 0.5889,
+      "sigma": 0.0473,
+      "true_skill": 0.6554,
+      "error": 0.0666
+    },
+    "player_0075": {
+      "mu": 0.4889,
+      "sigma": 0.0446,
+      "true_skill": 0.3956,
+      "error": 0.0933
+    },
+    "player_0076": {
+      "mu": 0.7318,
+      "sigma": 0.0442,
+      "true_skill": 0.9145,
+      "error": 0.1827
+    },
+    "player_0077": {
+      "mu": 0.4352,
+      "sigma": 0.0434,
+      "true_skill": 0.4589,
+      "error": 0.0237
+    },
+    "player_0078": {
+      "mu": 0.4259,
+      "sigma": 0.0421,
+      "true_skill": 0.2649,
+      "error": 0.161
+    },
+    "player_0079": {
+      "mu": 0.3859,
+      "sigma": 0.0436,
+      "true_skill": 0.2466,
+      "error": 0.1393
+    },
+    "player_0080": {
+      "mu": 0.5982,
+      "sigma": 0.0442,
+      "true_skill": 0.5614,
+      "error": 0.0368
+    },
+    "player_0081": {
+      "mu": 0.4512,
+      "sigma": 0.0434,
+      "true_skill": 0.2627,
+      "error": 0.1885
+    },
+    "player_0082": {
+      "mu": 0.6425,
+      "sigma": 0.0436,
+      "true_skill": 0.5846,
+      "error": 0.0579
+    },
+    "player_0083": {
+      "mu": 0.7207,
+      "sigma": 0.044,
+      "true_skill": 0.8978,
+      "error": 0.1771
+    },
+    "player_0084": {
+      "mu": 0.392,
+      "sigma": 0.0415,
+      "true_skill": 0.3994,
+      "error": 0.0074
+    },
+    "player_0085": {
+      "mu": 0.4066,
+      "sigma": 0.0458,
+      "true_skill": 0.2193,
+      "error": 0.1873
+    },
+    "player_0086": {
+      "mu": 0.7621,
+      "sigma": 0.0431,
+      "true_skill": 0.9975,
+      "error": 0.2355
+    },
+    "player_0087": {
+      "mu": 0.5552,
+      "sigma": 0.0417,
+      "true_skill": 0.5095,
+      "error": 0.0456
+    },
+    "player_0088": {
+      "mu": 0.296,
+      "sigma": 0.0442,
+      "true_skill": 0.0909,
+      "error": 0.2051
+    },
+    "player_0089": {
+      "mu": 0.2724,
+      "sigma": 0.044,
+      "true_skill": 0.0471,
+      "error": 0.2252
+    },
+    "player_0090": {
+      "mu": 0.3359,
+      "sigma": 0.0469,
+      "true_skill": 0.1096,
+      "error": 0.2263
+    },
+    "player_0091": {
+      "mu": 0.556,
+      "sigma": 0.0429,
+      "true_skill": 0.6274,
+      "error": 0.0714
+    },
+    "player_0092": {
+      "mu": 0.6893,
+      "sigma": 0.0444,
+      "true_skill": 0.7921,
+      "error": 0.1027
+    },
+    "player_0093": {
+      "mu": 0.4673,
+      "sigma": 0.044,
+      "true_skill": 0.4222,
+      "error": 0.0451
+    },
+    "player_0094": {
+      "mu": 0.269,
+      "sigma": 0.0444,
+      "true_skill": 0.0635,
+      "error": 0.2055
+    },
+    "player_0095": {
+      "mu": 0.425,
+      "sigma": 0.0423,
+      "true_skill": 0.3816,
+      "error": 0.0433
+    },
+    "player_0096": {
+      "mu": 0.8049,
+      "sigma": 0.044,
+      "true_skill": 0.9961,
+      "error": 0.1912
+    },
+    "player_0097": {
+      "mu": 0.5552,
+      "sigma": 0.0466,
+      "true_skill": 0.5291,
+      "error": 0.0261
+    },
+    "player_0098": {
+      "mu": 0.7129,
+      "sigma": 0.0436,
+      "true_skill": 0.9711,
+      "error": 0.2582
+    },
+    "player_0099": {
+      "mu": 0.7506,
+      "sigma": 0.0463,
+      "true_skill": 0.8608,
+      "error": 0.1102
+    }
+  }
+}

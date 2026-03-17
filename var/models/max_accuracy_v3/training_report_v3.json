@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-03-16 20:24:25",
+  "version": "v3_ultimate",
+  "average_accuracy": 0.997266,
+  "models": [
+    {
+      "name": "CFR (DCFR)",
+      "accuracy": 1.0,
+      "metric_name": "convergence",
+      "secondary": 0.0,
+      "epochs_or_iters": 5000,
+      "elapsed": 2.59,
+      "path": "var\\models\\max_accuracy_v3\\cfr\\cfr_final.json",
+      "details": {}
+    },
+    {
+      "name": "PDCFR+",
+      "accuracy": 1.0,
+      "metric_name": "convergence",
+      "secondary": 0.0,
+      "epochs_or_iters": 5000,
+      "elapsed": 2.96,
+      "path": "var\\models\\max_accuracy_v3\\pdcfr_plus\\pdcfr_plus_final.json",
+      "details": {}
+    },
+    {
+      "name": "Skill Estimator V3 (Binary)",
+      "accuracy": 1.0,
+      "metric_name": "binary_accuracy",
+      "secondary": 0.0,
+      "epochs_or_iters": 1,
+      "elapsed": 67.04,
+      "path": "var\\models\\max_accuracy_v3\\skill_estimator\\skill_v3.json",
+      "details": {
+        "architecture": "20\u2192128\u219264\u219232\u21921",
+        "n_classes": 2
+      }
+    },
+    {
+      "name": "Behavior Predictor V3 (3-class)",
+      "accuracy": 0.98926,
+      "metric_name": "action_class_accuracy",
+      "secondary": 0.0,
+      "epochs_or_iters": 4,
+      "elapsed": 337.31,
+      "path": "var\\models\\max_accuracy_v3\\behavior_predictor\\behavior_v3.json",
+      "details": {
+        "architecture": "110\u2192256\u2192128\u219264\u21923",
+        "n_classes": 3
+      }
+    },
+    {
+      "name": "OpenSkill V3",
+      "accuracy": 0.997069,
+      "metric_name": "correlation",
+      "secondary": 0.089823,
+      "epochs_or_iters": 100000,
+      "elapsed": 0.51,
+      "path": "var\\models\\max_accuracy_v3\\openskill\\openskill_v3.json",
+      "details": {}
+    }
+  ]
+}
